@@ -63,6 +63,8 @@ struct asr {
    ASR * p1; // La subexpresión a la izquierda
    ASR * p2; // La subexpresión a la derecha
    ASR * p3; // apuntador al nodo correspondiente en la tabla de símbolos
+   ASR * p4;
+   ASR * p5;
 };
 
 
@@ -70,7 +72,7 @@ struct asr {
 
 extern int yylex();
 int yyerror(char const * s);
-ASR * nuevoNodo(unsigned char,  char * , unsigned char, int, float, ASR *, ASR *, ASR *);
+ASR * nuevoNodo(unsigned char,  char * , unsigned char, int, float, ASR *, ASR *, ASR *, ASR *, ASR *);
 extern char * yytext;
 extern FILE *yyin;
 void findID(char * id);
@@ -112,16 +114,25 @@ struct nodoTS * current = NULL;
 
 %%
 
-prog : PROGRAM ID opt_decls BGN opt_stmts END  {printf("\n programa valido \n"); printList(); recorre($5, 0); exit(0);}
+prog : PROGRAM ID opt_decls BGN opt_stmts END  { 
+						   ASR *nodoRoot;
+						   nodoRoot = nuevoNodo(0, "PROGRAM", '2', 0, 0.0, $5, NULL, NULL, NULL, NULL);
+						   printf("\n programa valido \n\n"); 
+						   printf("########## TABLA DE SIMBOLOS ############\n\n");
+						   printList(); 
+						    printf("########## ARBOL SINTACTICO REDUCIDO ############\n\n");
+						   recorre(nodoRoot, 0); 
+						   exit(0);
+						 }
 ;
 
-opt_decls : decl_lst {printf("\n Se ha encontrado un enunciado");}
+opt_decls : decl_lst 
 	  | %empty {$$ = NULL;}
           
 ;
 
-decl_lst : decl SEMI decl_lst {printf("\n Se ha encontrado mas de una declaracion");}
-         | decl {printf("\n Se ha encontrado una sola declaracion");}
+decl_lst : decl SEMI decl_lst 
+         | decl 
 ;
 
 decl : VAR ID COLON type  {$$ = insertID($2, $4);}
@@ -134,24 +145,40 @@ type : INTEGER  {$$ = INTEGER;}
 stmt : ID LARROW expr {
 			
 			ASR *nodoID;
-			nodoID = nuevoNodo(1, $1, '2', 0, 0.0, NULL, NULL, NULL);
-			$$ = nuevoNodo(0, "ASSIGN", '2', 0, 0.0, nodoID, $3, NULL);
+			nodoID = nuevoNodo(1, $1, '2', 0, 0.0, NULL, NULL, NULL, NULL, NULL);
+			$$ = nuevoNodo(0, "ASSIGN", '2', 0, 0.0, nodoID, $3, NULL, NULL, NULL);
 	
 		       } 
      | IF expression THEN stmt {
-     				  $$ = nuevoNodo(0, "IF", '2', 0, 0.0, $2, $4, NULL);
+     				  $$ = nuevoNodo(0, "IF", '2', 0, 0.0, $2, $4, NULL, NULL, NULL);
      				}
-     | FOR ID LARROW expr UNTIL expr STEP expr DO stmt 
+     | FOR ID LARROW expr UNTIL expr STEP expr DO stmt {
+     							   ASR *nodoID = nuevoNodo(0, $2, '2', 0, 0.0, NULL, NULL, NULL, NULL, NULL);
+     							   ASR *nodoSet = nuevoNodo(0, "ASSIGN", '2', 0, 0.0, nodoID, $4, NULL, NULL, NULL);
+     							   ASR *nodoLt = nuevoNodo(0, "LEQ", '2', 0, 0.0, nodoID, $6, NULL, NULL, NULL);
+     							   ASR *nodoStep = nuevoNodo(0, "STEP", '2', 0, 0.0, nodoID, $8, NULL, NULL, NULL);
+     							   ASR *nodoSet2 = nuevoNodo(0, "ASSIGN", '2', 0, 0.0, nodoID, nodoSet, NULL, NULL, NULL);
+     							   $$ = nuevoNodo(0, "FOR", '2', 0, 0.0, nodoSet, nodoLt, nodoSet2, $10, NULL);
+     							  }
+     							   
      | READ ID {
      		ASR *nodoID;
-     		nodoID = nuevoNodo(0,$2, '2', 0,0.0, NULL, NULL, NULL);	
-     		$$ = nuevoNodo(0, "READ", '2', 0, 0.0, nodoID, NULL, NULL);
+     		nodoID = nuevoNodo(0,$2, '2', 0,0.0, NULL, NULL, NULL, NULL, NULL);	
+     		$$ = nuevoNodo(0, "READ", '2', 0, 0.0, nodoID, NULL, NULL, NULL, NULL);
      		}
-     | IF expression THEN stmt ELSE stmt 
-     | WHILE PARI expression PARF stmt
-     | REPEAT stmt UNTIL PARI expression PARF 
+     | IF expression THEN stmt ELSE stmt {
+     					    $$ = nuevoNodo(0, "IF_ELSE", '2',0,0.0, $2,$4,$6, NULL, NULL);
+     					   }
+     | WHILE PARI expression PARF stmt 
+     					{
+     					 $$ = nuevoNodo(0, "WHILE", '2', 0, 0.0, $3, $5, NULL, NULL, NULL);
+     					 }
+     					 
+     | REPEAT stmt UNTIL PARI expression PARF {
+     						 $$ = nuevoNodo(0, "REPEAT", '2', 0, 0.0, $2, $5, NULL, NULL, NULL);
+     						}
      | PRINT expr {
-     		   $$ = nuevoNodo(0, "PRINT", '2', 0, 0.0, $2, NULL, NULL);
+     		   $$ = nuevoNodo(0, "PRINT", '2', 0, 0.0, $2, NULL, NULL, NULL, NULL);
      		   }
      | BGN opt_stmts END 
 ;
@@ -159,32 +186,32 @@ stmt : ID LARROW expr {
 opt_stmts : stmt_lst {$$ = $1;}
           | %empty {$$ = NULL;}
 ;
-stmt_lst : stmt SEMI stmt_lst {$$ = nuevoNodo(0,"PYC",'2',0, 0.0, $1,$3, NULL);}
-         | stmt {$$ = nuevoNodo(0,"PYC_S",'2',0, 0.0, $1, NULL, NULL);}
+stmt_lst : stmt SEMI stmt_lst {$$ = nuevoNodo(0,"PYC",'2',0, 0.0, $1,$3, NULL, NULL, NULL);}
+         | stmt {$$ = nuevoNodo(0,"PYC_S",'2',0, 0.0, $1, NULL, NULL, NULL, NULL);}
 ;
 
-expr : expr SUMA term  {$$ = nuevoNodo('2', "+", '2', 0, 0.0, $1, $3, NULL);}
-     | expr RESTA term  {$$ = nuevoNodo('2', "-", '2', 0, 0.0, $1, $3, NULL);}
+expr : expr SUMA term  {$$ = nuevoNodo('2', "+", '2', 0, 0.0, $1, $3, NULL, NULL, NULL);}
+     | expr RESTA term  {$$ = nuevoNodo('2', "-", '2', 0, 0.0, $1, $3, NULL, NULL, NULL);}
      | term {$$ = $1;}
 ;
 
-term : term MULT factor {$$ = nuevoNodo('2', "*", '2', 0, 0.0, $1, $3, NULL);}
-     | term DIV factor {$$ = nuevoNodo('2', "/", '2', 0, 0.0, $1, $3, NULL);}
+term : term MULT factor {$$ = nuevoNodo('2', "*", '2', 0, 0.0, $1, $3, NULL, NULL, NULL);}
+     | term DIV factor {$$ = nuevoNodo('2', "/", '2', 0, 0.0, $1, $3, NULL, NULL, NULL);}
      | factor {$$ = $1;}
 ;
 
 // modificada para diferenciar entre enteros y flotantes
-factor : PARI expr PARF  
-       | ID   {$$ = nuevoNodo(1, $1, 1, 0, 0.0, NULL, NULL, NULL);}      
-       | INT  {$$ = nuevoNodo(1, "INT", 1, yylval.entero, 0.0, NULL, NULL, NULL);}      
-       | FLOAT {$$ = nuevoNodo(1, "FLOAT", 1, 0, yylval.flotante, NULL, NULL, NULL);}
+factor : PARI expr PARF {$$ = $2;}
+       | ID   {$$ = nuevoNodo(1, $1, 1, 0, 0.0, NULL, NULL, NULL, NULL, NULL);}      
+       | INT  {$$ = nuevoNodo(1, "INT", 1, yylval.entero, 0.0, NULL, NULL, NULL, NULL, NULL);}      
+       | FLOAT {$$ = nuevoNodo(1, "FLOAT", 1, 0, yylval.flotante, NULL, NULL, NULL, NULL, NULL);}
 ;
 
-expression : expr LESSER expr {$$ = nuevoNodo(3, "<", '2', 0, 0.0, $1, $3, NULL);}
-           | expr GREATER expr {$$ = nuevoNodo(3, ">", '2', 0, 0.0, $1, $3, NULL);}
-           | expr EQUAL expr {$$ = nuevoNodo(3, "=", '2', 0, 0.0, $1, $3, NULL);}
-           | expr LEQUAL expr {$$ = nuevoNodo(3, ">=", '2', 0, 0.0, $1, $3, NULL);}
-           | expr GEQUAL expr {$$ = nuevoNodo(3, "<=", '2', 0, 0.0, $1, $3, NULL);}
+expression : expr LESSER expr {$$ = nuevoNodo(3, "<", '2', 0, 0.0, $1, $3, NULL, NULL, NULL);}
+           | expr GREATER expr {$$ = nuevoNodo(3, ">", '2', 0, 0.0, $1, $3, NULL, NULL, NULL);}
+           | expr EQUAL expr {$$ = nuevoNodo(3, "=", '2', 0, 0.0, $1, $3, NULL, NULL, NULL);}
+           | expr LEQUAL expr {$$ = nuevoNodo(3, ">=", '2', 0, 0.0, $1, $3, NULL, NULL, NULL);}
+           | expr GEQUAL expr {$$ = nuevoNodo(3, "<=", '2', 0, 0.0, $1, $3, NULL, NULL, NULL);}
 ;
 
 
@@ -243,11 +270,11 @@ void printList() {
 	 ptr = ptr->next;
 	}
 	
-	printf(" ] \n");
+	printf(" ] \n\n");
 
 }
 
-ASR * nuevoNodo(unsigned char tipo,  char * stipo, unsigned char tipovalor, int vint, float vfloat, ASR * p1, ASR * p2, ASR * p3) {
+ASR * nuevoNodo(unsigned char tipo,  char * stipo, unsigned char tipovalor, int vint, float vfloat, ASR * p1, ASR * p2, ASR * p3, ASR * p4, ASR * p5) {
 
    ASR * aux = (ASR *) malloc(sizeof(ASR));
    aux -> tipo = tipo;
@@ -258,6 +285,8 @@ ASR * nuevoNodo(unsigned char tipo,  char * stipo, unsigned char tipovalor, int 
    aux -> p1 = p1;
    aux -> p2 = p2;
    aux -> p3 = p3;
+   aux -> p4 = p4;
+   aux -> p5 = p5;
    return aux;
 }
 
@@ -321,9 +350,7 @@ void recorre(ASR * raiz, int level) {
       	recorre(raiz -> p3, level+1);
       	printTabs(level);
       	
-      	if(raiz->stipo == "READ"){
-      	   read(raiz);
-      	 }
+    
       	  
       	if(strcmp(raiz->stipo, "INT") == 0){
       	  printf("Valor int: %d\n", raiz->vint);
@@ -341,12 +368,8 @@ void recorre(ASR * raiz, int level) {
       
       
       
+      
+      
  }
- 
- 
- void read(ASR * raiz){
- 	printf("entre a read \n");
- 
- 
- }
+
 
