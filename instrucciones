@@ -1,0 +1,47 @@
+typedef struct asr ASR;
+struct asr {
+   unsigned char tipo; 
+   /* Indica si es: 
+   0 = instrucción, 
+   1 = constante, 
+   2 = operación, 
+   3 = relación, 
+   4 = variable*/
+   unsigned char stipo; 
+   /*Indica el tipo de instrucción: 
+   0 = begin, 
+   1 = end, 
+   2 = read, 
+   3 = print, 
+   4 = if, 
+   5 = then, 
+   6 = else, 
+   7 = for, 
+   8 = do, 
+   9 = while, 
+   a = repeat, 
+   b = until, 
+   c = step. 
+   d = no_es_instrucción*/
+   e = asignacion
+   // Indica si una variable es float o int
+   // Si es un número es el valor del número. Si no, es la operación.
+   unsigned char tipovalor; // Indica si una variable es de tipo 0 = int, 1 = float o 2 = no_es_variable
+   ASR * p1; // La subexpresión a la izquierda
+   ASR * p2; // La subexpresión a la derecha
+   ASR * p3; // apuntador al nodo correspondiente en la tabla de símbolos
+};
+
+program algo
+var x: int;
+var y: int;
+begin 
+x<-5
+end
+
+
+
+	
+
+
+
