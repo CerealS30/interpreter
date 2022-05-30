@@ -248,15 +248,6 @@ void main(int argc, char * argv[]) {
 */
 
 
-/*program algo
-var x: int;
-var y: int
-begin 
-x <- 5;
-y <- 4;
-return x + y;
-end
-*/
 
 
 void printList() {
@@ -364,11 +355,6 @@ void recorre(ASR * raiz, int level) {
       	
       	  
       }
-      
-      
-      
-      
-      
       
  }
 
