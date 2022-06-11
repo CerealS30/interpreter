@@ -66,21 +66,21 @@ extern int yydebug;
     LEQUAL = 272,
     GEQUAL = 273,
     LARROW = 274,
-    FOR = 275,
-    DO = 276,
-    WHILE = 277,
-    IF = 278,
+    RES_FOR = 275,
+    RES_DO = 276,
+    RES_WHILE = 277,
+    RES_IF = 278,
     THEN = 279,
     ELSE = 280,
     INT = 281,
     FLOAT = 282,
-    REPEAT = 283,
+    RES_REPEAT = 283,
     UNTIL = 284,
-    STEP = 285,
-    PROGRAM = 286,
+    RES_STEP = 285,
+    RES_PROGRAM = 286,
     VAR = 287,
-    READ = 288,
-    PRINT = 289,
+    RES_READ = 288,
+    RES_PRINT = 289,
     INTEGER = 290,
     FLOATING = 291,
     ID = 292
@@ -91,12 +91,12 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 90 "reconocedor.y"
+#line 156 "reconocedor.y"
 
    struct nodoTS * val;
    char * nombre;
    int entero;  // Para las constantes num�ricas
-   float flotante;
+   double doubleVal;
    union valor *f;
    struct asr * arbol;  // Para los apuntadores a �rbol sint�ctico
 

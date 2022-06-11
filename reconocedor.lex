@@ -14,6 +14,7 @@ gcc lex.yy.c calculadora.tab.c -lfl
 #include "reconocedor.tab.h"
 
 int numlinea = 1;
+double doubleVal;
 //int yylval;
 //float yyfloat;
 %}
@@ -25,8 +26,8 @@ ID [A-Za-z$_][A-Za-z0-9$_]*
 %%
 
 {ENTERO} {yylval.entero = atoi(yytext); return INT; /* Convierte el NUM a n�mero entero*/}
-{FLOTANTE} {yylval.flotante = atof(yytext); return FLOAT; /* Convierte el NUM a n�mero de punto flotante */}
-program {return PROGRAM;}
+{FLOTANTE} {doubleVal = atof(yytext); return FLOAT; /* Convierte el NUM a n�mero de punto flotante */}
+program {return RES_PROGRAM;}
 "+" {return SUMA;}
 "-" {return RESTA;}
 "*" {return MULT;}
@@ -41,22 +42,22 @@ program {return PROGRAM;}
 "<=" {return LEQUAL;}
 ">=" {return GEQUAL;}
 "<-" {return LARROW;}
-for {return FOR;}
-do {return DO;}
-while {return WHILE;}
-if {return IF;}
+for {return RES_FOR;}
+do {return RES_DO;}
+while {return RES_WHILE;}
+if {return RES_IF;}
 then {return THEN;}
 else {return ELSE;}
 "int" {return INTEGER;}
 "float" {return FLOATING;}
-repeat {return REPEAT;}
+repeat {return RES_REPEAT;}
 until {return UNTIL;}
 begin {return BGN;}
 end {return END;}
-step {return STEP;}
+step {return RES_STEP;}
 var {return VAR;}
-read {return READ;}
-print {return PRINT;}
+read {return RES_READ;}
+print {return RES_PRINT;}
 {ID} {yylval.nombre = (char *) calloc(strlen(yytext) + 1, sizeof(char)); strcpy(yylval.nombre, yytext); return ID;}
 [\n] {numlinea++;}
 [ \t] { }

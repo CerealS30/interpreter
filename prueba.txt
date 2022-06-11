@@ -1,9 +1,6 @@
-program ocho 
-var x:int;
-var y:int
+program bobo
+var x:int
 begin
-x<-3;
-y<-4;
-z<-x+y;
-print z
+x<-5;
+print x
 end
