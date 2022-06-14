@@ -36,12 +36,14 @@ program {return RES_PROGRAM;}
 ")" {return PARF;}
 ":" {return COLON;}
 ";" {return SEMI;}
+"," {return COMMA;}
 "=" {return EQUAL;}
 "<" {return LESSER;}
 ">" {return GREATER;}
 "<=" {return LEQUAL;}
 ">=" {return GEQUAL;}
 "<-" {return LARROW;}
+fun {return RES_FUN;}
 for {return RES_FOR;}
 do {return RES_DO;}
 while {return RES_WHILE;}
@@ -58,6 +60,7 @@ step {return RES_STEP;}
 var {return VAR;}
 read {return RES_READ;}
 print {return RES_PRINT;}
+return {return RES_RETURN;}
 {ID} {yylval.nombre = (char *) calloc(strlen(yytext) + 1, sizeof(char)); strcpy(yylval.nombre, yytext); return ID;}
 [\n] {numlinea++;}
 [ \t] { }

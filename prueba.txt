@@ -1,6 +1,16 @@
 program bobo
-var x:int
+
+fun add(x:int , y:int) : int
+
+var z:int;
+var w:int
+
 begin
-x<-5;
-print x
+z<-x;
+w<-y;
+return z+w
+end
+
+begin
+print 1000
 end

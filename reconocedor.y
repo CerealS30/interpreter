@@ -168,10 +168,10 @@ struct nodoTS * current;
 
 
 
-%token SUMA RESTA MULT DIV PARI PARF BGN END COLON SEMI ASSIGN EQUAL LESSER GREATER LEQUAL GEQUAL LARROW RES_FOR RES_DO RES_WHILE RES_IF THEN ELSE INT FLOAT RES_REPEAT UNTIL RES_STEP RES_PROGRAM VAR RES_READ RES_PRINT INTEGER FLOATING
+%token SUMA RESTA MULT DIV PARI PARF BGN END COLON SEMI ASSIGN EQUAL LESSER GREATER LEQUAL GEQUAL LARROW RES_FOR RES_DO RES_WHILE RES_IF THEN ELSE INT FLOAT RES_REPEAT UNTIL RES_STEP RES_PROGRAM VAR RES_READ RES_PRINT INTEGER FLOATING RES_FUN COMMA RES_RETURN
 %token <nombre> ID
 %type <entero> type
-%type <arbol> prog opt_decls decl_lst stmt opt_stmts stmt_lst expr term factor expression SUMA RESTA MULT DIV PARI PARF BGN END COLON SEMI ASSIGN EQUAL LESSER GREATER LEQUAL GEQUAL LARROW RES_FOR RES_DO RES_WHILE RES_IF THEN ELSE INT FLOAT RES_REPEAT UNTIL RES_STEP RES_PROGRAM VAR RES_READ RES_PRINT
+%type <arbol> prog stmt opt_stmts stmt_lst expr term factor expression expr_lst opt_exprs SUMA RESTA MULT DIV PARI PARF BGN END COLON SEMI ASSIGN EQUAL LESSER GREATER LEQUAL GEQUAL LARROW RES_FOR RES_DO RES_WHILE RES_IF THEN ELSE INT FLOAT RES_REPEAT UNTIL RES_STEP RES_PROGRAM VAR RES_READ RES_PRINT
 %type <val> decl
 %start prog
 
@@ -180,9 +180,9 @@ struct nodoTS * current;
 
 %%
 
-prog : RES_PROGRAM ID opt_decls BGN opt_stmts END  {
+prog : RES_PROGRAM ID opt_decls opt_fun_decls BGN opt_stmts END  {
 						   ASR *nodoRoot;
-						   nodoRoot = nuevoNodo(NOTHING, NOTHING, NULL, PROGRAM, NOTHING, $5, NULL, NULL, NULL, NULL);
+						   nodoRoot = nuevoNodo(NOTHING, NOTHING, NULL, PROGRAM, NOTHING, $6, NULL, NULL, NULL, NULL);
 						   printf("\n programa valido \n\n");
 						   printf("########## TABLA DE SIMBOLOS ############\n\n");
 						   printList();
@@ -196,7 +196,7 @@ prog : RES_PROGRAM ID opt_decls BGN opt_stmts END  {
 ;
 
 opt_decls : decl_lst
-	  | %empty {$$ = NULL;}
+	  | %empty
 
 ;
 
@@ -204,12 +204,49 @@ decl_lst : decl SEMI decl_lst
          | decl
 ;
 
-decl : VAR ID COLON type  {$$ = insertID($2, $4);}
+decl : VAR ID COLON type  {insertID($2, $4);}
 ;
 
 type : INTEGER  {$$ = INTEGER_NUMBER_VALUE;}
      | FLOATING {$$ = FLOATING_POINT_NUMBER_VALUE;}
 ;
+
+// REGLAS DE LAS FUNCIONES
+
+opt_fun_decls : fun_decls
+              | %empty
+;
+
+fun_decls : fun_decls fun_decl
+          | fun_decl
+;
+fun_decl : RES_FUN ID PARI oparams PARF COLON type opt_decls_for_function BGN opt_stmts END
+        | RES_FUN ID PARI oparams PARF COLON type SEMI
+;
+oparams : params
+        | %empty
+;
+params : param COMMA params
+       | param
+;
+
+param : ID COLON type
+;
+
+
+opt_decls_for_function : decls_for_function
+                       | %empty
+;
+
+decls_for_function : dec_for_function SEMI decls_for_function
+                   | dec_for_function
+;
+
+dec_for_function : VAR ID COLON type
+
+;
+
+
 
 stmt : ID LARROW expr {
 
@@ -218,9 +255,11 @@ stmt : ID LARROW expr {
                           $$ = nuevoNodo(NOTHING, NOTHING, NULL, SET, STMT, nodoID, $3, NULL, NULL, NULL);
 
                        }
+;
      | RES_IF expression THEN stmt {
      				                         $$ = nuevoNodo(NOTHING, NOTHING, NULL, IF, IF_STMT, $2, $4, NULL, NULL, NULL);
      				                       }
+;
      | RES_FOR ID LARROW expr UNTIL expr RES_STEP expr RES_DO stmt {
      							   ASR *nodoID = nuevoNodo(NOTHING, NOTHING, (char *)$2, ID_VALUE, FOR, NULL, NULL, NULL, NULL, NULL);
      							   ASR *nodoSet = nuevoNodo(NOTHING, NOTHING, NULL, SET, FOR, nodoID, $4, NULL, NULL, NULL);
@@ -229,26 +268,33 @@ stmt : ID LARROW expr {
      							   ASR *nodoSet2 = nuevoNodo(NOTHING, NOTHING, NULL, SET, FOR, nodoID, nodoStep, NULL, NULL, NULL);
      							   $$ = nuevoNodo(NOTHING, NOTHING, NULL, FOR, ITER_STMT, nodoSet, nodoLt, nodoSet2, $10, NULL);
      							  }
-
+;
      | RES_READ ID {
      		ASR *nodoID;
      		nodoID = nuevoNodo(NOTHING,NOTHING, (char *)$2, ID_VALUE,READ, NULL, NULL, NULL, NULL, NULL);
      		$$ = nuevoNodo(NOTHING, NOTHING, NULL, READ, STMT, nodoID, NULL, NULL, NULL, NULL);
      		}
+;
      | RES_IF expression THEN stmt ELSE stmt {
      					                                  $$ = nuevoNodo(NOTHING,NOTHING,NULL, IFELSE , IF_STMT , $2,$4,$6, NULL, NULL);
      					                               }
+;
      | RES_WHILE PARI expression PARF stmt
      					{
      					 $$ = nuevoNodo(NOTHING,NOTHING,NULL,WHILE, ITER_STMT, $3, $5, NULL, NULL, NULL);
      					 }
-
+;
      | RES_REPEAT stmt UNTIL PARI expression PARF {
      						 $$ = nuevoNodo(NOTHING, NOTHING, NULL, REPEAT, ITER_STMT, $2, $5, NULL, NULL, NULL);
      						}
+;
      | RES_PRINT expr {
      		   $$ = nuevoNodo(NOTHING, NOTHING, NULL, PRINT, STMT, $2, NULL, NULL, NULL, NULL);
      		   }
+;
+     | RES_RETURN expr {
+           $$ = nuevoNodo(NOTHING, NOTHING, NULL, RETURN, STMT, $2, NULL, NULL, NULL, NULL);
+     }
      | BGN opt_stmts END {$$ = $2;}
 ;
 
@@ -274,7 +320,27 @@ factor : PARI expr PARF {$$ = $2;}
        | ID   {$$ = nuevoNodo(NOTHING, NOTHING, (char*)$1, ID_VALUE, FACTOR, NULL, NULL, NULL, NULL, NULL);}
        | INT  {$$ = nuevoNodo((int)$1, NOTHING, NULL, INTEGER_NUMBER_VALUE, TERM, NULL, NULL, NULL, NULL, NULL);}
        | FLOAT {$$ = nuevoNodo(NOTHING, doubleVal, NULL, FLOATING_POINT_NUMBER_VALUE, TERM, NULL, NULL, NULL, NULL, NULL);}
+       | ID PARI opt_exprs PARF {$$ = nuevoNodo(NOTHING, NOTHING, (char *)$1, FUNCTION_VALUE, TERM, $3, NULL, NULL, NULL, NULL);}
 ;
+
+opt_exprs : expr_lst
+          {
+            $$ = $1;
+          }
+          | %empty
+          {
+            $$ = NULL;
+          }
+;
+
+expr_lst : expr_lst COMMA expr
+          {
+            $$ = nuevoNodo(NOTHING, NOTHING, NULL, PARAMETER_VALUE, EXPR_LST, $3, $1, NULL, NULL, NULL);
+          }
+          | expr
+          {
+            $$ = nuevoNodo(NOTHING, NOTHING, NULL, PARAMETER_VALUE, EXPR_LST, $1, NULL, NULL, NULL, NULL);
+          }
 
 expression : expr LESSER expr {$$ = nuevoNodo(NOTHING, NOTHING, NULL, LT, EXPRESION, $1, $3, NULL, NULL, NULL);}
            | expr GREATER expr {$$ = nuevoNodo(NOTHING, NOTHING, NULL, GT, EXPRESION, $1, $3, NULL, NULL, NULL);}
@@ -757,7 +823,7 @@ void printTree(ASR * node){
     return;
 
   printNodeType(node->type, "type");
-  //printf("address = %p\n", node);
+  printf("address = %p\n", node);
   printNodeType(node->parentNodeType, "parentNodeType");
 
   if(node->type == INTEGER_NUMBER_VALUE){
@@ -777,10 +843,10 @@ void printTree(ASR * node){
 
   // Print the addresses of the current node's children
   int i = 0;
-  /*
+
   for(i = 0; i < 4; i++)
     printf("ptr #%d: %p\n", i + 1, node->arrPtr[i]);
-  */
+
   printf("\n");
 
   // Now call the printing of the current node's children

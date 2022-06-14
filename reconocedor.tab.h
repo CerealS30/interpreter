@@ -83,7 +83,10 @@ extern int yydebug;
     RES_PRINT = 289,
     INTEGER = 290,
     FLOATING = 291,
-    ID = 292
+    RES_FUN = 292,
+    COMMA = 293,
+    RES_RETURN = 294,
+    ID = 295
   };
 #endif
 
@@ -100,7 +103,7 @@ union YYSTYPE
    union valor *f;
    struct asr * arbol;  // Para los apuntadores a �rbol sint�ctico
 
-#line 104 "reconocedor.tab.h"
+#line 107 "reconocedor.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

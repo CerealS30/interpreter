@@ -291,7 +291,10 @@ extern int yydebug;
     RES_PRINT = 289,
     INTEGER = 290,
     FLOATING = 291,
-    ID = 292
+    RES_FUN = 292,
+    COMMA = 293,
+    RES_RETURN = 294,
+    ID = 295
   };
 #endif
 
@@ -308,7 +311,7 @@ union YYSTYPE
    union valor *f;
    struct asr * arbol;  // Para los apuntadores a �rbol sint�ctico
 
-#line 312 "reconocedor.tab.c"
+#line 315 "reconocedor.tab.c"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -627,19 +630,19 @@ union yyalloc
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  4
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   83
+#define YYLAST   113
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  38
+#define YYNTOKENS  41
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  13
+#define YYNNTS  24
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  37
+#define YYNRULES  59
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  87
+#define YYNSTATES  127
 
 #define YYUNDEFTOK  2
-#define YYMAXUTOK   292
+#define YYMAXUTOK   295
 
 
 /* YYTRANSLATE(TOKEN-NUM) -- Symbol number corresponding to TOKEN-NUM
@@ -680,7 +683,7 @@ static const yytype_int8 yytranslate[] =
        5,     6,     7,     8,     9,    10,    11,    12,    13,    14,
       15,    16,    17,    18,    19,    20,    21,    22,    23,    24,
       25,    26,    27,    28,    29,    30,    31,    32,    33,    34,
-      35,    36,    37
+      35,    36,    37,    38,    39,    40
 };
 
 #if YYDEBUG
@@ -688,9 +691,11 @@ static const yytype_int8 yytranslate[] =
 static const yytype_int16 yyrline[] =
 {
        0,   183,   183,   198,   199,   203,   204,   207,   210,   211,
-     214,   221,   224,   233,   238,   241,   246,   249,   252,   255,
-     256,   258,   259,   262,   263,   264,   267,   268,   269,   273,
-     274,   275,   276,   279,   280,   281,   282,   283
+     216,   217,   220,   221,   223,   224,   226,   227,   229,   230,
+     233,   237,   238,   241,   242,   245,   251,   259,   263,   272,
+     278,   282,   287,   291,   295,   298,   301,   302,   304,   305,
+     308,   309,   310,   313,   314,   315,   319,   320,   321,   322,
+     323,   326,   330,   336,   340,   345,   346,   347,   348,   349
 };
 #endif
 
@@ -704,9 +709,12 @@ static const char *const yytname[] =
   "GREATER", "LEQUAL", "GEQUAL", "LARROW", "RES_FOR", "RES_DO",
   "RES_WHILE", "RES_IF", "THEN", "ELSE", "INT", "FLOAT", "RES_REPEAT",
   "UNTIL", "RES_STEP", "RES_PROGRAM", "VAR", "RES_READ", "RES_PRINT",
-  "INTEGER", "FLOATING", "ID", "$accept", "prog", "opt_decls", "decl_lst",
-  "decl", "type", "stmt", "opt_stmts", "stmt_lst", "expr", "term",
-  "factor", "expression", YY_NULLPTR
+  "INTEGER", "FLOATING", "RES_FUN", "COMMA", "RES_RETURN", "ID", "$accept",
+  "prog", "opt_decls", "decl_lst", "decl", "type", "opt_fun_decls",
+  "fun_decls", "fun_decl", "oparams", "params", "param",
+  "opt_decls_for_function", "decls_for_function", "dec_for_function",
+  "stmt", "opt_stmts", "stmt_lst", "expr", "term", "factor", "opt_exprs",
+  "expr_lst", "expression", YY_NULLPTR
 };
 #endif
 
@@ -718,11 +726,12 @@ static const yytype_int16 yytoknum[] =
        0,   256,   257,   258,   259,   260,   261,   262,   263,   264,
      265,   266,   267,   268,   269,   270,   271,   272,   273,   274,
      275,   276,   277,   278,   279,   280,   281,   282,   283,   284,
-     285,   286,   287,   288,   289,   290,   291,   292
+     285,   286,   287,   288,   289,   290,   291,   292,   293,   294,
+     295
 };
 # endif
 
-#define YYPACT_NINF (-29)
+#define YYPACT_NINF (-57)
 
 #define yypact_value_is_default(Yyn) \
   ((Yyn) == YYPACT_NINF)
@@ -736,15 +745,19 @@ static const yytype_int16 yytoknum[] =
      STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-     -22,   -26,    27,   -16,   -29,     1,    30,   -29,    39,    41,
-      22,   -16,   -21,    22,    20,    46,     3,    22,    23,     3,
-      35,    52,    56,   -29,   -29,   -29,   -29,   -29,    57,    50,
-       3,     3,   -29,   -29,   -29,    59,    17,   -29,    47,    43,
-     -29,    16,     3,    22,   -29,   -29,     3,    62,     4,     3,
-       3,     3,     3,     3,     3,     3,     3,     3,    22,    71,
-      16,   -29,    14,    22,   -29,    17,    17,    16,    16,    16,
-      16,    16,   -29,   -29,    54,     3,     3,   -29,    22,    72,
-       2,   -29,   -29,     3,     0,    22,   -29
+     -25,   -29,    16,   -10,   -57,   -12,    -6,   -57,    13,    38,
+       1,    45,    -6,   -57,   -10,   -15,    53,    28,   -57,   -57,
+     -57,   -57,   -57,    24,    28,    31,    65,     0,    28,    33,
+       0,     0,    56,    67,    68,   -57,    74,    78,   -57,    49,
+      79,    69,     0,     0,   -57,   -57,    83,    66,    47,   -57,
+      70,    62,   -57,    30,    30,     0,    28,   -57,   -15,    84,
+      24,   -57,     0,    88,    15,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,     0,    28,    91,    30,   -57,   -57,
+     -15,   -57,     9,    28,   -57,    30,    92,    61,    47,    47,
+      30,    30,    30,    30,    30,   -57,   -57,    76,     0,    -2,
+       0,   -57,   -57,     0,    28,    94,   -57,    63,    95,   -57,
+      93,     5,    30,   -57,   -57,    96,    28,    77,     0,   -15,
+      98,   -57,    11,   -57,   -57,    28,   -57
 };
 
   /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -752,29 +765,35 @@ static const yytype_int8 yypact[] =
      means the default is an error.  */
 static const yytype_int8 yydefact[] =
 {
-       0,     0,     0,     4,     1,     0,     0,     3,     6,     0,
-      20,     0,     0,    20,     0,     0,     0,     0,     0,     0,
-       0,    22,     0,    19,     5,     8,     9,     7,     0,     0,
-       0,     0,    31,    32,    30,     0,    25,    28,     0,     0,
-      13,    17,     0,     0,     2,    18,     0,     0,     0,     0,
-       0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-      10,    21,     0,     0,    29,    23,    24,    35,    33,    34,
-      36,    37,    26,    27,    11,     0,     0,    15,     0,     0,
-       0,    14,    16,     0,     0,     0,    12
+       0,     0,     0,     4,     1,     0,    11,     3,     6,     0,
+       0,     0,    10,    13,     0,     0,     0,    37,    12,     5,
+       8,     9,     7,    17,    37,     0,     0,     0,     0,     0,
+       0,     0,     0,    39,     0,    36,     0,     0,    16,    19,
+       0,     0,     0,     0,    48,    49,    47,     0,    42,    45,
+       0,     0,    29,    33,    34,     0,     0,     2,     0,     0,
+       0,    35,     0,     0,     0,    52,     0,     0,     0,     0,
+       0,     0,     0,     0,     0,     0,     0,    26,    38,    20,
+       0,    18,     0,     0,    46,    54,     0,    51,    40,    41,
+      57,    55,    56,    58,    59,    43,    44,    27,     0,    22,
+       0,    31,    50,     0,     0,     0,    15,     0,     0,    21,
+      24,     0,    53,    30,    32,     0,    37,     0,     0,     0,
+       0,    23,     0,    25,    14,     0,    28
 };
 
   /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-     -29,   -29,   -29,    70,   -29,   -29,   -17,    69,    40,   -18,
-     -24,    -8,   -28
+     -57,   -57,   -57,    97,   -57,   -56,   -57,   -57,   100,   -57,
+      46,   -57,   -57,    -7,   -57,   -28,   -23,    57,   -26,    -9,
+      -8,   -57,   -57,   -39
 };
 
   /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-      -1,     2,     6,     7,     8,    27,    21,    22,    23,    35,
-      36,    37,    38
+      -1,     2,     6,     7,     8,    22,    11,    12,    13,    37,
+      38,    39,   108,   109,   110,    33,    34,    35,    47,    48,
+      49,    86,    87,    50
 };
 
   /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -782,61 +801,75 @@ static const yytype_int8 yydefgoto[] =
      number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int8 yytable[] =
 {
-      39,    41,    47,    49,    50,    49,    50,    49,    50,     1,
-      31,     3,    64,    48,    25,    26,     5,    49,    50,    49,
-      50,    85,    56,    57,    60,    65,    66,     4,    62,    32,
-      33,    13,    83,    67,    68,    69,    70,    71,     9,    10,
-      34,    74,    14,    76,    15,    16,    77,    79,    72,    73,
-      17,    11,    12,    30,    42,    18,    19,    29,    80,    20,
-      40,    81,    49,    50,    43,    84,    44,    45,    86,    46,
-      63,    58,    59,    51,    52,    53,    54,    55,    75,    78,
-      82,    24,    28,    61
+      51,    40,    79,    63,    53,    54,     1,    43,    66,    67,
+     106,     3,    66,    67,    66,    67,     4,    64,    66,    67,
+      20,    21,     5,    84,    99,    14,    44,    45,     9,    77,
+     107,    10,   125,    66,    67,   118,    82,    24,   100,    85,
+      46,    16,    90,    91,    92,    93,    94,    97,    25,    15,
+      26,    27,    73,    74,    17,   101,    28,    88,    89,   105,
+      23,    29,    30,   123,    36,    95,    96,    31,    32,    66,
+      67,    41,    42,    52,   111,    55,   113,   112,    57,    56,
+      68,    69,    70,    71,    72,    58,    59,    60,    62,    61,
+      65,    76,   122,   120,    75,    80,    83,   126,    98,   103,
+     102,   104,   114,   115,   116,   117,    81,   119,   124,   107,
+     121,    19,    18,    78
 };
 
 static const yytype_int8 yycheck[] =
 {
-      17,    19,    30,     3,     4,     3,     4,     3,     4,    31,
-       7,    37,     8,    31,    35,    36,    32,     3,     4,     3,
-       4,    21,     5,     6,    42,    49,    50,     0,    46,    26,
-      27,     9,    30,    51,    52,    53,    54,    55,    37,     9,
-      37,    58,    20,    29,    22,    23,    63,    75,    56,    57,
-      28,    12,    11,     7,    19,    33,    34,    37,    76,    37,
-      37,    78,     3,     4,    12,    83,    10,    10,    85,    19,
-       8,    24,    29,    14,    15,    16,    17,    18,     7,    25,
-       8,    11,    13,    43
+      28,    24,    58,    42,    30,    31,    31,     7,     3,     4,
+      12,    40,     3,     4,     3,     4,     0,    43,     3,     4,
+      35,    36,    32,     8,    80,    12,    26,    27,    40,    55,
+      32,    37,    21,     3,     4,    30,    62,     9,    29,    65,
+      40,    40,    68,    69,    70,    71,    72,    75,    20,    11,
+      22,    23,     5,     6,     9,    83,    28,    66,    67,    98,
+       7,    33,    34,   119,    40,    73,    74,    39,    40,     3,
+       4,    40,     7,    40,   100,    19,   104,   103,    10,    12,
+      14,    15,    16,    17,    18,    11,     8,    38,    19,    10,
+       7,    29,   118,   116,    24,    11,     8,   125,     7,    38,
+       8,    25,     8,    40,     9,    12,    60,    11,    10,    32,
+     117,    14,    12,    56
 };
 
   /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
      symbol of state STATE-NUM.  */
 static const yytype_int8 yystos[] =
 {
-       0,    31,    39,    37,     0,    32,    40,    41,    42,    37,
-       9,    12,    11,     9,    20,    22,    23,    28,    33,    34,
-      37,    44,    45,    46,    41,    35,    36,    43,    45,    37,
-       7,     7,    26,    27,    37,    47,    48,    49,    50,    44,
-      37,    47,    19,    12,    10,    10,    19,    50,    47,     3,
-       4,    14,    15,    16,    17,    18,     5,     6,    24,    29,
-      47,    46,    47,     8,     8,    48,    48,    47,    47,    47,
-      47,    47,    49,    49,    44,     7,    29,    44,    25,    50,
-      47,    44,     8,    30,    47,    21,    44
+       0,    31,    42,    40,     0,    32,    43,    44,    45,    40,
+      37,    47,    48,    49,    12,    11,    40,     9,    49,    44,
+      35,    36,    46,     7,     9,    20,    22,    23,    28,    33,
+      34,    39,    40,    56,    57,    58,    40,    50,    51,    52,
+      57,    40,     7,     7,    26,    27,    40,    59,    60,    61,
+      64,    56,    40,    59,    59,    19,    12,    10,    11,     8,
+      38,    10,    19,    64,    59,     7,     3,     4,    14,    15,
+      16,    17,    18,     5,     6,    24,    29,    59,    58,    46,
+      11,    51,    59,     8,     8,    59,    62,    63,    60,    60,
+      59,    59,    59,    59,    59,    61,    61,    56,     7,    46,
+      29,    56,     8,    38,    25,    64,    12,    32,    53,    54,
+      55,    59,    59,    56,     8,    40,     9,    12,    30,    11,
+      57,    54,    59,    46,    10,    21,    56
 };
 
   /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
 static const yytype_int8 yyr1[] =
 {
-       0,    38,    39,    40,    40,    41,    41,    42,    43,    43,
-      44,    44,    44,    44,    44,    44,    44,    44,    44,    45,
-      45,    46,    46,    47,    47,    47,    48,    48,    48,    49,
-      49,    49,    49,    50,    50,    50,    50,    50
+       0,    41,    42,    43,    43,    44,    44,    45,    46,    46,
+      47,    47,    48,    48,    49,    49,    50,    50,    51,    51,
+      52,    53,    53,    54,    54,    55,    56,    56,    56,    56,
+      56,    56,    56,    56,    56,    56,    57,    57,    58,    58,
+      59,    59,    59,    60,    60,    60,    61,    61,    61,    61,
+      61,    62,    62,    63,    63,    64,    64,    64,    64,    64
 };
 
   /* YYR2[YYN] -- Number of symbols on the right hand side of rule YYN.  */
 static const yytype_int8 yyr2[] =
 {
-       0,     2,     6,     1,     0,     3,     1,     4,     1,     1,
-       3,     4,    10,     2,     6,     5,     6,     2,     3,     1,
-       0,     3,     1,     3,     3,     1,     3,     3,     1,     3,
-       1,     1,     1,     3,     3,     3,     3,     3
+       0,     2,     7,     1,     0,     3,     1,     4,     1,     1,
+       1,     0,     2,     1,    11,     8,     1,     0,     3,     1,
+       3,     1,     0,     3,     1,     4,     3,     4,    10,     2,
+       6,     5,     6,     2,     2,     3,     1,     0,     3,     1,
+       3,     3,     1,     3,     3,     1,     3,     1,     1,     1,
+       4,     1,     0,     3,     1,     3,     3,     3,     3,     3
 };
 
 
@@ -1533,7 +1566,7 @@ yyreduce:
     {
   case 2:
 #line 183 "reconocedor.y"
-                                                   {
+                                                                 {
 						   ASR *nodoRoot;
 						   nodoRoot = nuevoNodo(NOTHING, NOTHING, NULL, PROGRAM, NOTHING, (yyvsp[-1].arbol), NULL, NULL, NULL, NULL);
 						   printf("\n programa valido \n\n");
@@ -1546,35 +1579,29 @@ yyreduce:
                 printf("########## END OF PROGRAM OUTPUT ############\n\n");
 						   exit(0);
 						 }
-#line 1550 "reconocedor.tab.c"
-    break;
-
-  case 4:
-#line 199 "reconocedor.y"
-                   {(yyval.arbol) = NULL;}
-#line 1556 "reconocedor.tab.c"
+#line 1583 "reconocedor.tab.c"
     break;
 
   case 7:
 #line 207 "reconocedor.y"
-                          {(yyval.val) = insertID((yyvsp[-2].nombre), (yyvsp[0].entero));}
-#line 1562 "reconocedor.tab.c"
+                          {insertID((yyvsp[-2].nombre), (yyvsp[0].entero));}
+#line 1589 "reconocedor.tab.c"
     break;
 
   case 8:
 #line 210 "reconocedor.y"
                 {(yyval.entero) = INTEGER_NUMBER_VALUE;}
-#line 1568 "reconocedor.tab.c"
+#line 1595 "reconocedor.tab.c"
     break;
 
   case 9:
 #line 211 "reconocedor.y"
                 {(yyval.entero) = FLOATING_POINT_NUMBER_VALUE;}
-#line 1574 "reconocedor.tab.c"
+#line 1601 "reconocedor.tab.c"
     break;
 
-  case 10:
-#line 214 "reconocedor.y"
+  case 26:
+#line 251 "reconocedor.y"
                       {
 
                           ASR *nodoID;
@@ -1582,19 +1609,19 @@ yyreduce:
                           (yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, SET, STMT, nodoID, (yyvsp[0].arbol), NULL, NULL, NULL);
 
                        }
-#line 1586 "reconocedor.tab.c"
+#line 1613 "reconocedor.tab.c"
     break;
 
-  case 11:
-#line 221 "reconocedor.y"
+  case 27:
+#line 259 "reconocedor.y"
                                    {
      				                         (yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, IF, IF_STMT, (yyvsp[-2].arbol), (yyvsp[0].arbol), NULL, NULL, NULL);
      				                       }
-#line 1594 "reconocedor.tab.c"
+#line 1621 "reconocedor.tab.c"
     break;
 
-  case 12:
-#line 224 "reconocedor.y"
+  case 28:
+#line 263 "reconocedor.y"
                                                                    {
      							   ASR *nodoID = nuevoNodo(NOTHING, NOTHING, (char *)(yyvsp[-8].nombre), ID_VALUE, FOR, NULL, NULL, NULL, NULL, NULL);
      							   ASR *nodoSet = nuevoNodo(NOTHING, NOTHING, NULL, SET, FOR, nodoID, (yyvsp[-6].arbol), NULL, NULL, NULL);
@@ -1603,173 +1630,219 @@ yyreduce:
      							   ASR *nodoSet2 = nuevoNodo(NOTHING, NOTHING, NULL, SET, FOR, nodoID, nodoStep, NULL, NULL, NULL);
      							   (yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, FOR, ITER_STMT, nodoSet, nodoLt, nodoSet2, (yyvsp[0].arbol), NULL);
      							  }
-#line 1607 "reconocedor.tab.c"
+#line 1634 "reconocedor.tab.c"
     break;
 
-  case 13:
-#line 233 "reconocedor.y"
+  case 29:
+#line 272 "reconocedor.y"
                    {
      		ASR *nodoID;
      		nodoID = nuevoNodo(NOTHING,NOTHING, (char *)(yyvsp[0].nombre), ID_VALUE,READ, NULL, NULL, NULL, NULL, NULL);
      		(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, READ, STMT, nodoID, NULL, NULL, NULL, NULL);
      		}
-#line 1617 "reconocedor.tab.c"
-    break;
-
-  case 14:
-#line 238 "reconocedor.y"
-                                             {
-     					                                  (yyval.arbol) = nuevoNodo(NOTHING,NOTHING,NULL, IFELSE , IF_STMT , (yyvsp[-4].arbol),(yyvsp[-2].arbol),(yyvsp[0].arbol), NULL, NULL);
-     					                               }
-#line 1625 "reconocedor.tab.c"
-    break;
-
-  case 15:
-#line 242 "reconocedor.y"
-                                        {
-     					 (yyval.arbol) = nuevoNodo(NOTHING,NOTHING,NULL,WHILE, ITER_STMT, (yyvsp[-2].arbol), (yyvsp[0].arbol), NULL, NULL, NULL);
-     					 }
-#line 1633 "reconocedor.tab.c"
-    break;
-
-  case 16:
-#line 246 "reconocedor.y"
-                                                  {
-     						 (yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, REPEAT, ITER_STMT, (yyvsp[-4].arbol), (yyvsp[-1].arbol), NULL, NULL, NULL);
-     						}
-#line 1641 "reconocedor.tab.c"
-    break;
-
-  case 17:
-#line 249 "reconocedor.y"
-                      {
-     		   (yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, PRINT, STMT, (yyvsp[0].arbol), NULL, NULL, NULL, NULL);
-     		   }
-#line 1649 "reconocedor.tab.c"
-    break;
-
-  case 18:
-#line 252 "reconocedor.y"
-                         {(yyval.arbol) = (yyvsp[-1].arbol);}
-#line 1655 "reconocedor.tab.c"
-    break;
-
-  case 19:
-#line 255 "reconocedor.y"
-                     {(yyval.arbol) = (yyvsp[0].arbol);}
-#line 1661 "reconocedor.tab.c"
-    break;
-
-  case 20:
-#line 256 "reconocedor.y"
-                   {(yyval.arbol) = NULL;}
-#line 1667 "reconocedor.tab.c"
-    break;
-
-  case 21:
-#line 258 "reconocedor.y"
-                              {(yyval.arbol) = nuevoNodo(NOTHING,NOTHING,NULL,PYC, STMT_LST, (yyvsp[-2].arbol),(yyvsp[0].arbol), NULL, NULL, NULL);}
-#line 1673 "reconocedor.tab.c"
-    break;
-
-  case 22:
-#line 259 "reconocedor.y"
-                {(yyval.arbol) = nuevoNodo(NOTHING,NOTHING,NULL,PYC_S, STMT_LST, (yyvsp[0].arbol), NULL, NULL, NULL, NULL);}
-#line 1679 "reconocedor.tab.c"
-    break;
-
-  case 23:
-#line 262 "reconocedor.y"
-                       {(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, PLUS, EXPR, (yyvsp[-2].arbol), (yyvsp[0].arbol), NULL, NULL, NULL);}
-#line 1685 "reconocedor.tab.c"
-    break;
-
-  case 24:
-#line 263 "reconocedor.y"
-                        {(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, MINUS, EXPR, (yyvsp[-2].arbol), (yyvsp[0].arbol), NULL, NULL, NULL);}
-#line 1691 "reconocedor.tab.c"
-    break;
-
-  case 25:
-#line 264 "reconocedor.y"
-            {(yyval.arbol) = (yyvsp[0].arbol);}
-#line 1697 "reconocedor.tab.c"
-    break;
-
-  case 26:
-#line 267 "reconocedor.y"
-                        {(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, STAR, EXPR, (yyvsp[-2].arbol), (yyvsp[0].arbol), NULL, NULL, NULL);}
-#line 1703 "reconocedor.tab.c"
-    break;
-
-  case 27:
-#line 268 "reconocedor.y"
-                       {(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, FORWARD_SLASH, EXPR, (yyvsp[-2].arbol), (yyvsp[0].arbol), NULL, NULL, NULL);}
-#line 1709 "reconocedor.tab.c"
-    break;
-
-  case 28:
-#line 269 "reconocedor.y"
-              {(yyval.arbol) = (yyvsp[0].arbol);}
-#line 1715 "reconocedor.tab.c"
-    break;
-
-  case 29:
-#line 273 "reconocedor.y"
-                        {(yyval.arbol) = (yyvsp[-1].arbol);}
-#line 1721 "reconocedor.tab.c"
+#line 1644 "reconocedor.tab.c"
     break;
 
   case 30:
-#line 274 "reconocedor.y"
-              {(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, (char*)(yyvsp[0].nombre), ID_VALUE, FACTOR, NULL, NULL, NULL, NULL, NULL);}
-#line 1727 "reconocedor.tab.c"
+#line 278 "reconocedor.y"
+                                             {
+     					                                  (yyval.arbol) = nuevoNodo(NOTHING,NOTHING,NULL, IFELSE , IF_STMT , (yyvsp[-4].arbol),(yyvsp[-2].arbol),(yyvsp[0].arbol), NULL, NULL);
+     					                               }
+#line 1652 "reconocedor.tab.c"
     break;
 
   case 31:
-#line 275 "reconocedor.y"
-              {(yyval.arbol) = nuevoNodo((int)(yyvsp[0].arbol), NOTHING, NULL, INTEGER_NUMBER_VALUE, TERM, NULL, NULL, NULL, NULL, NULL);}
-#line 1733 "reconocedor.tab.c"
+#line 283 "reconocedor.y"
+                                        {
+     					 (yyval.arbol) = nuevoNodo(NOTHING,NOTHING,NULL,WHILE, ITER_STMT, (yyvsp[-2].arbol), (yyvsp[0].arbol), NULL, NULL, NULL);
+     					 }
+#line 1660 "reconocedor.tab.c"
     break;
 
   case 32:
-#line 276 "reconocedor.y"
-               {(yyval.arbol) = nuevoNodo(NOTHING, doubleVal, NULL, FLOATING_POINT_NUMBER_VALUE, TERM, NULL, NULL, NULL, NULL, NULL);}
-#line 1739 "reconocedor.tab.c"
+#line 287 "reconocedor.y"
+                                                  {
+     						 (yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, REPEAT, ITER_STMT, (yyvsp[-4].arbol), (yyvsp[-1].arbol), NULL, NULL, NULL);
+     						}
+#line 1668 "reconocedor.tab.c"
     break;
 
   case 33:
-#line 279 "reconocedor.y"
-                              {(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, LT, EXPRESION, (yyvsp[-2].arbol), (yyvsp[0].arbol), NULL, NULL, NULL);}
-#line 1745 "reconocedor.tab.c"
+#line 291 "reconocedor.y"
+                      {
+     		   (yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, PRINT, STMT, (yyvsp[0].arbol), NULL, NULL, NULL, NULL);
+     		   }
+#line 1676 "reconocedor.tab.c"
     break;
 
   case 34:
-#line 280 "reconocedor.y"
-                               {(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, GT, EXPRESION, (yyvsp[-2].arbol), (yyvsp[0].arbol), NULL, NULL, NULL);}
-#line 1751 "reconocedor.tab.c"
+#line 295 "reconocedor.y"
+                       {
+           (yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, RETURN, STMT, (yyvsp[0].arbol), NULL, NULL, NULL, NULL);
+     }
+#line 1684 "reconocedor.tab.c"
     break;
 
   case 35:
-#line 281 "reconocedor.y"
-                             {(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, EQ, EXPRESION, (yyvsp[-2].arbol), (yyvsp[0].arbol), NULL, NULL, NULL);}
-#line 1757 "reconocedor.tab.c"
+#line 298 "reconocedor.y"
+                         {(yyval.arbol) = (yyvsp[-1].arbol);}
+#line 1690 "reconocedor.tab.c"
     break;
 
   case 36:
-#line 282 "reconocedor.y"
-                              {(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, LEQ, EXPRESION, (yyvsp[-2].arbol), (yyvsp[0].arbol), NULL, NULL, NULL);}
-#line 1763 "reconocedor.tab.c"
+#line 301 "reconocedor.y"
+                     {(yyval.arbol) = (yyvsp[0].arbol);}
+#line 1696 "reconocedor.tab.c"
     break;
 
   case 37:
-#line 283 "reconocedor.y"
+#line 302 "reconocedor.y"
+                   {(yyval.arbol) = NULL;}
+#line 1702 "reconocedor.tab.c"
+    break;
+
+  case 38:
+#line 304 "reconocedor.y"
+                              {(yyval.arbol) = nuevoNodo(NOTHING,NOTHING,NULL,PYC, STMT_LST, (yyvsp[-2].arbol),(yyvsp[0].arbol), NULL, NULL, NULL);}
+#line 1708 "reconocedor.tab.c"
+    break;
+
+  case 39:
+#line 305 "reconocedor.y"
+                {(yyval.arbol) = nuevoNodo(NOTHING,NOTHING,NULL,PYC_S, STMT_LST, (yyvsp[0].arbol), NULL, NULL, NULL, NULL);}
+#line 1714 "reconocedor.tab.c"
+    break;
+
+  case 40:
+#line 308 "reconocedor.y"
+                       {(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, PLUS, EXPR, (yyvsp[-2].arbol), (yyvsp[0].arbol), NULL, NULL, NULL);}
+#line 1720 "reconocedor.tab.c"
+    break;
+
+  case 41:
+#line 309 "reconocedor.y"
+                        {(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, MINUS, EXPR, (yyvsp[-2].arbol), (yyvsp[0].arbol), NULL, NULL, NULL);}
+#line 1726 "reconocedor.tab.c"
+    break;
+
+  case 42:
+#line 310 "reconocedor.y"
+            {(yyval.arbol) = (yyvsp[0].arbol);}
+#line 1732 "reconocedor.tab.c"
+    break;
+
+  case 43:
+#line 313 "reconocedor.y"
+                        {(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, STAR, EXPR, (yyvsp[-2].arbol), (yyvsp[0].arbol), NULL, NULL, NULL);}
+#line 1738 "reconocedor.tab.c"
+    break;
+
+  case 44:
+#line 314 "reconocedor.y"
+                       {(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, FORWARD_SLASH, EXPR, (yyvsp[-2].arbol), (yyvsp[0].arbol), NULL, NULL, NULL);}
+#line 1744 "reconocedor.tab.c"
+    break;
+
+  case 45:
+#line 315 "reconocedor.y"
+              {(yyval.arbol) = (yyvsp[0].arbol);}
+#line 1750 "reconocedor.tab.c"
+    break;
+
+  case 46:
+#line 319 "reconocedor.y"
+                        {(yyval.arbol) = (yyvsp[-1].arbol);}
+#line 1756 "reconocedor.tab.c"
+    break;
+
+  case 47:
+#line 320 "reconocedor.y"
+              {(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, (char*)(yyvsp[0].nombre), ID_VALUE, FACTOR, NULL, NULL, NULL, NULL, NULL);}
+#line 1762 "reconocedor.tab.c"
+    break;
+
+  case 48:
+#line 321 "reconocedor.y"
+              {(yyval.arbol) = nuevoNodo((int)(yyvsp[0].arbol), NOTHING, NULL, INTEGER_NUMBER_VALUE, TERM, NULL, NULL, NULL, NULL, NULL);}
+#line 1768 "reconocedor.tab.c"
+    break;
+
+  case 49:
+#line 322 "reconocedor.y"
+               {(yyval.arbol) = nuevoNodo(NOTHING, doubleVal, NULL, FLOATING_POINT_NUMBER_VALUE, TERM, NULL, NULL, NULL, NULL, NULL);}
+#line 1774 "reconocedor.tab.c"
+    break;
+
+  case 50:
+#line 323 "reconocedor.y"
+                                {(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, (char *)(yyvsp[-3].nombre), FUNCTION_VALUE, TERM, (yyvsp[-1].arbol), NULL, NULL, NULL, NULL);}
+#line 1780 "reconocedor.tab.c"
+    break;
+
+  case 51:
+#line 327 "reconocedor.y"
+          {
+            (yyval.arbol) = (yyvsp[0].arbol);
+          }
+#line 1788 "reconocedor.tab.c"
+    break;
+
+  case 52:
+#line 331 "reconocedor.y"
+          {
+            (yyval.arbol) = NULL;
+          }
+#line 1796 "reconocedor.tab.c"
+    break;
+
+  case 53:
+#line 337 "reconocedor.y"
+          {
+            (yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, PARAMETER_VALUE, EXPR_LST, (yyvsp[0].arbol), (yyvsp[-2].arbol), NULL, NULL, NULL);
+          }
+#line 1804 "reconocedor.tab.c"
+    break;
+
+  case 54:
+#line 341 "reconocedor.y"
+          {
+            (yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, PARAMETER_VALUE, EXPR_LST, (yyvsp[0].arbol), NULL, NULL, NULL, NULL);
+          }
+#line 1812 "reconocedor.tab.c"
+    break;
+
+  case 55:
+#line 345 "reconocedor.y"
+                              {(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, LT, EXPRESION, (yyvsp[-2].arbol), (yyvsp[0].arbol), NULL, NULL, NULL);}
+#line 1818 "reconocedor.tab.c"
+    break;
+
+  case 56:
+#line 346 "reconocedor.y"
+                               {(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, GT, EXPRESION, (yyvsp[-2].arbol), (yyvsp[0].arbol), NULL, NULL, NULL);}
+#line 1824 "reconocedor.tab.c"
+    break;
+
+  case 57:
+#line 347 "reconocedor.y"
+                             {(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, EQ, EXPRESION, (yyvsp[-2].arbol), (yyvsp[0].arbol), NULL, NULL, NULL);}
+#line 1830 "reconocedor.tab.c"
+    break;
+
+  case 58:
+#line 348 "reconocedor.y"
+                              {(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, LEQ, EXPRESION, (yyvsp[-2].arbol), (yyvsp[0].arbol), NULL, NULL, NULL);}
+#line 1836 "reconocedor.tab.c"
+    break;
+
+  case 59:
+#line 349 "reconocedor.y"
                               {(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, GEQ, EXPRESION, (yyvsp[-2].arbol), (yyvsp[0].arbol), NULL, NULL, NULL);}
-#line 1769 "reconocedor.tab.c"
+#line 1842 "reconocedor.tab.c"
     break;
 
 
-#line 1773 "reconocedor.tab.c"
+#line 1846 "reconocedor.tab.c"
 
       default: break;
     }
@@ -2001,7 +2074,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 288 "reconocedor.y"
+#line 354 "reconocedor.y"
 
 
 
@@ -2474,7 +2547,7 @@ void printTree(ASR * node){
     return;
 
   printNodeType(node->type, "type");
-  //printf("address = %p\n", node);
+  printf("address = %p\n", node);
   printNodeType(node->parentNodeType, "parentNodeType");
 
   if(node->type == INTEGER_NUMBER_VALUE){
@@ -2494,10 +2567,10 @@ void printTree(ASR * node){
 
   // Print the addresses of the current node's children
   int i = 0;
-  /*
+
   for(i = 0; i < 4; i++)
     printf("ptr #%d: %p\n", i + 1, node->arrPtr[i]);
-  */
+
   printf("\n");
 
   // Now call the printing of the current node's children
