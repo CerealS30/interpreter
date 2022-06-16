@@ -1,9 +1,18 @@
 program bobo
 
-fun add(x:int , y:int) : int;
+var t:int
 
-fun subtract(w:int, z:int): int;
+fun add(tres:int , cuatro:int) : int
+begin
+return tres+cuatro
+end
+
+fun subtract(uno:int , dos:int) : int
+begin
+return uno+dos
+end
 
 begin
-print 1000
+print add(1,2);
+t<-5
 end

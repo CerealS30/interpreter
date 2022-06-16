@@ -157,9 +157,11 @@ struct nodoTS * insertID(char* id, int tipo);
 void insertFunc(char*, int, int, struct nodoTS*, ASR*);
 void insertIDFunc(struct nodoTS**, char*, int);
 void printList();
-void printListTsl();
+void printListTsl(struct nodoTS * ptr, char * nombre);
 void printListTsf();
 void printTree(ASR * raiz);
+void preTreePrinting(ASR * node, char * id);
+struct nodoTSF * retrieveFromFunSymbolTable(char * id);
 void interpreta(ASR * raiz);
 
 
@@ -202,12 +204,12 @@ prog : RES_PROGRAM ID opt_decls opt_fun_decls BGN opt_stmts END  {
 						   ASR *nodoRoot;
 						   nodoRoot = nuevoNodo(NOTHING, NOTHING, NULL, PROGRAM, NOTHING, $6, NULL, NULL, NULL, NULL);
 						   printf("\n programa valido \n\n");
-						   printf("########## TABLA DE SIMBOLOS ############\n\n");
+						   printf("########## TABLA DE SIMBOLOS DE FUNCION main ############\n\n");
 						   printList();
 						    printf("########## ARBOL SINTACTICO REDUCIDO ############\n\n");
-						   printTree(nodoRoot);
-                printf("########## TABLA DE SIMBOLOS DE FUNCIONES ############\n\n");
-                printListTsl();
+						   preTreePrinting(nodoRoot, "main");
+                //printf("########## TABLA DE SIMBOLOS DE FUNCIONES ############\n\n");
+                //printListTsl();
                 printf("########## TABLA DE FUNCIONES ############\n\n");
                 printListTsf();
                 printf("########## START OF PROGRAM OUTPUT ############\n\n");
@@ -246,6 +248,7 @@ fun_decl : RES_FUN ID PARI oparams PARF COLON type opt_decls_for_function BGN op
                                                                                             {
                                                                                               insertFunc($2, $7, numParam, tslHead, $10);
                                                                                               numParam = 0;
+                                                                                              tslHead = NULL;
                                                                                             }
         | RES_FUN ID PARI oparams PARF COLON type SEMI {
                                                         insertFunc($2, $7, numParam, tslHead, NULL);
@@ -350,7 +353,6 @@ factor : PARI expr PARF {$$ = $2;}
        | FLOAT {$$ = nuevoNodo(NOTHING, doubleVal, NULL, FLOATING_POINT_NUMBER_VALUE, TERM, NULL, NULL, NULL, NULL, NULL);}
        | ID PARI opt_exprs PARF {$$ = nuevoNodo(NOTHING, NOTHING, (char *)$1, FUNCTION_VALUE, TERM, $3, NULL, NULL, NULL, NULL);}
 ;
-
 opt_exprs : expr_lst
           {
             $$ = $1;
@@ -428,9 +430,9 @@ void printList() {
 
 }
 
-void printListTsl() {
-  struct nodoTS * ptr = tslHead;
-
+void printListTsl(struct nodoTS * ptr, char * nombre) {
+  struct nodoTS * pointer = ptr;
+  printf("#################### TABLA DE SIMBOLOS DE LA FUNCION %s #########################\n\n", nombre);
   printf("\n[ ");
 
 	while(ptr != NULL) {
@@ -440,21 +442,26 @@ void printListTsl() {
 	}
 
 	printf(" ] \n\n");
+  printf("#################### FINAL DE LA TABLA DE SIMBOLO DE LA FUNCION %s  #########################\n\n", nombre);
 }
 
 void printListTsf() {
 
   struct nodoTSF * ptr = functionSymbolTableHead;
 
-  printf("\n[ ");
+
 
 	while(ptr != NULL) {
+    printf("\n[ ");
 	 if(ptr->returnType == INTEGER_NUMBER_VALUE) printf("(%s, # params: %d, return type: int) ",ptr->nombre, ptr->numParams);
 	 else if(ptr->returnType == FLOATING_POINT_NUMBER_VALUE) printf("(%s, # params: %d, return type: float) ", ptr->nombre, ptr->numParams);
+   printf(" ] \n\n");
+   printListTsl(ptr->tsl, ptr->nombre);
+   preTreePrinting(ptr->cuerpo, ptr->nombre);
 	 ptr = ptr->next;
 	}
 
-	printf(" ] \n\n");
+
 }
 
 ASR * nuevoNodo(int iVal, double dVal, char* idName, int type, int parentNodeType, ASR * ptr1, ASR * ptr2, ASR * ptr3, ASR * ptr4, ASR * nextNode) {
@@ -483,6 +490,11 @@ ASR * nuevoNodo(int iVal, double dVal, char* idName, int type, int parentNodeTyp
    else if(type == ID_VALUE){
 
      // Malloc for the identifier's name
+     newNodePtr->value.idName = (char *) malloc(strlen(idName) + 1);
+     strcpy (newNodePtr->value.idName, idName);
+   }
+   else if(type == FUNCTION_VALUE){
+
      newNodePtr->value.idName = (char *) malloc(strlen(idName) + 1);
      strcpy (newNodePtr->value.idName, idName);
    }
@@ -524,6 +536,21 @@ void insertIDFunc(struct nodoTS** tslHead, char * id, int tipo){
   newNode->next = (struct nodoTS*)(*tslHead);
   *tslHead = newNode;
 
+}
+
+struct nodoTSF* retrieveFromFunSymbolTable(char * nombre){
+  struct nodoTSF *currPtr = functionSymbolTableHead;
+
+  while(currPtr != NULL){
+    assert(currPtr->nombre);
+
+    if(strcmp(currPtr->nombre, nombre) == 0)
+      return currPtr;
+
+      currPtr = currPtr->next;
+  }
+
+  return NULL;
 }
 
 struct nodoTS* auxRetrieveFromSymbolTable(char const *symbolName, struct nodoTS* symbolTableHead){
@@ -723,7 +750,7 @@ int func_exprInt(ASR * exprIntNode){
   }
   /*else if(exprIntNode->type == FUNCTION_VALUE){
 
-    func_func(exprIntNode);
+    (exprIntNode);
     // As we know that this is a function, then we know that this symbol must exist in the symbol table
     // of the main function, so directly call the auxiliary method that looks in that specific symbol table.
     struct SymbolTableNode* currFunc = auxRetrieveFromSymbolTable(exprIntNode->value.idName, mainFunctionSymbolTableHead);
@@ -899,13 +926,20 @@ void printNodeType(int type, char* label){
   }
 }
 
+void preTreePrinting(ASR* node, char* nombre){
+  printf("###################### INICIO ARBOL SINTACTICO REDUCIDO DE LA FUNCION %s #####################\n\n", nombre);
+  printTree(node);
+  printf("###################### FIN ARBOL SINTACTICO REDUCIDO DE LA FUNCION %s #####################\n\n", nombre);
+
+}
+
 void printTree(ASR * node){
 
   if(node == NULL)
     return;
 
   printNodeType(node->type, "type");
-  printf("address = %p\n", node);
+//printf("address = %p\n", node);
   printNodeType(node->parentNodeType, "parentNodeType");
 
   if(node->type == INTEGER_NUMBER_VALUE){
@@ -922,18 +956,40 @@ void printTree(ASR * node){
 
     printf("Node value = %f\n", node->value.doubleVal);
   }
+  else if(node->type == FUNCTION_VALUE){
+    printf("Node value = %s\n", node->value.idName);
+  }
 
   // Print the addresses of the current node's children
   int i = 0;
-
+/*
   for(i = 0; i < 4; i++)
     printf("ptr #%d: %p\n", i + 1, node->arrPtr[i]);
+*/
 
   printf("\n");
 
   // Now call the printing of the current node's children
   for(i = 0; i < 4; i++)
     printTree(node->arrPtr[i]);
+}
+
+int traverseTree(ASR * node, int count){
+  if(node->arrPtr[0] == NULL){
+    return count;
+  }
+}
+
+
+void func_func(ASR * nodeFunc){
+  struct nodoTSF * currFunc = retrieveFromFunSymbolTable(nodeFunc->value.idName);
+  int count = 0;
+  assert(currFunc != NULL);
+
+  printf("# params: ", currFunc->numParams);
+
+  traverseTree(nodeFunc, 0);
+
 }
 
 void func_read(ASR * nodeRead){
@@ -972,6 +1028,30 @@ void func_print(ASR * printNode){
   } else if(printNode->arrPtr[0]->parentNodeType == EXPR
     || printNode->arrPtr[0]->parentNodeType == TERM
     || printNode->arrPtr[0]->parentNodeType == FACTOR){
+
+
+    /*  if(printNode->arrPtr[0]->type == FUNCTION_VALUE){
+
+      func_func(printNode->arrPtr[0]);
+      // As we know that this is a function, then we know that this symbol must exist in the symbol table
+      // of the main function, so directly call the auxiliary method that looks in that specific symbol table.
+      struct SymbolTableNode* currFunc = auxRetrieveFromSymbolTable(printNode->arrPtr[0]->value.idName, mainFunctionSymbolTableHead);
+
+      if(currFunc->returnType == INTEGER_NUMBER_VALUE){
+
+        // printf("%d\n", currFunc->value.intVal);
+        printf("%d\n", ptrFunctionCallStackTop->value.intVal);
+      }
+      else{
+
+        assert(currFunc->returnType == FLOATING_POINT_NUMBER_VALUE);
+        // printf("%lf\n", currFunc->value.doubleVal);
+        printf("%lf\n", ptrFunctionCallStackTop->value.doubleVal);
+      }
+
+      popFunctionCallToStack();
+    }
+    else{*/
       if(isIntegerExpr(printNode->arrPtr[0])){
 
         printf("%d\n", func_exprInt(printNode->arrPtr[0]));
@@ -983,6 +1063,7 @@ void func_print(ASR * printNode){
       }
     }
   }
+//}
 
   void func_assign(ASR * setNode){
 
