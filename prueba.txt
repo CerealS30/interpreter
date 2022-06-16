@@ -1,15 +1,8 @@
 program bobo
 
-fun add(x:int , y:int) : int
+fun add(x:int , y:int) : int;
 
-var z:int;
-var w:int
-
-begin
-z<-x;
-w<-y;
-return z+w
-end
+fun subtract(w:int, z:int): int;
 
 begin
 print 1000

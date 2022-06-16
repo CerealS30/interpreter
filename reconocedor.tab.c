@@ -79,6 +79,8 @@
 
 double doubleVal;
 
+int numParam = 0;
+
  enum SyntaxTreeNodeType {
   PROGRAM,
   PYC,
@@ -175,6 +177,7 @@ struct nodoTS {
     }value;
     struct nodoTS * next;
 };
+
 // Definimos una estructura para hacer el árbol sintáctico reducIDo.
 typedef struct asr ASR;
 struct asr {
@@ -189,6 +192,15 @@ struct asr {
   ASR *next;
 };
 
+struct nodoTSF {
+  char * nombre;
+  int returnType;
+  int numParams;
+  struct nodoTS * tsl;
+  ASR * cuerpo;
+  struct nodoTSF * next;
+};
+
 
 
 
@@ -199,7 +211,11 @@ extern char * yytext;
 extern FILE *yyin;
 //void findID(char * id);
 struct nodoTS * insertID(char* id, int tipo);
+void insertFunc(char*, int, int, struct nodoTS*, ASR*);
+void insertIDFunc(struct nodoTS**, char*, int);
 void printList();
+void printListTsl();
+void printListTsf();
 void printTree(ASR * raiz);
 void interpreta(ASR * raiz);
 
@@ -207,9 +223,11 @@ void interpreta(ASR * raiz);
 
 
 struct nodoTS * head;
-struct nodoTS * current;
+struct nodoTS * tslHead;
+struct nodoTSF * functionSymbolTableHead;
 
-#line 213 "reconocedor.tab.c"
+
+#line 231 "reconocedor.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -302,7 +320,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 156 "reconocedor.y"
+#line 174 "reconocedor.y"
 
    struct nodoTS * val;
    char * nombre;
@@ -311,7 +329,7 @@ union YYSTYPE
    union valor *f;
    struct asr * arbol;  // Para los apuntadores a �rbol sint�ctico
 
-#line 315 "reconocedor.tab.c"
+#line 333 "reconocedor.tab.c"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -690,12 +708,12 @@ static const yytype_int8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
-       0,   183,   183,   198,   199,   203,   204,   207,   210,   211,
-     216,   217,   220,   221,   223,   224,   226,   227,   229,   230,
-     233,   237,   238,   241,   242,   245,   251,   259,   263,   272,
-     278,   282,   287,   291,   295,   298,   301,   302,   304,   305,
-     308,   309,   310,   313,   314,   315,   319,   320,   321,   322,
-     323,   326,   330,   336,   340,   345,   346,   347,   348,   349
+       0,   201,   201,   220,   221,   225,   226,   229,   232,   233,
+     238,   239,   242,   243,   245,   250,   255,   256,   258,   259,
+     262,   266,   267,   270,   271,   274,   279,   287,   291,   300,
+     306,   310,   315,   319,   323,   326,   329,   330,   332,   333,
+     336,   337,   338,   341,   342,   343,   347,   348,   349,   350,
+     351,   354,   358,   364,   368,   373,   374,   375,   376,   377
 };
 #endif
 
@@ -1565,7 +1583,7 @@ yyreduce:
   switch (yyn)
     {
   case 2:
-#line 183 "reconocedor.y"
+#line 201 "reconocedor.y"
                                                                  {
 						   ASR *nodoRoot;
 						   nodoRoot = nuevoNodo(NOTHING, NOTHING, NULL, PROGRAM, NOTHING, (yyvsp[-1].arbol), NULL, NULL, NULL, NULL);
@@ -1574,34 +1592,80 @@ yyreduce:
 						   printList();
 						    printf("########## ARBOL SINTACTICO REDUCIDO ############\n\n");
 						   printTree(nodoRoot);
+                printf("########## TABLA DE SIMBOLOS DE FUNCIONES ############\n\n");
+                printListTsl();
+                printf("########## TABLA DE FUNCIONES ############\n\n");
+                printListTsf();
                 printf("########## START OF PROGRAM OUTPUT ############\n\n");
                 interpreta(nodoRoot);
                 printf("########## END OF PROGRAM OUTPUT ############\n\n");
 						   exit(0);
 						 }
-#line 1583 "reconocedor.tab.c"
+#line 1605 "reconocedor.tab.c"
     break;
 
   case 7:
-#line 207 "reconocedor.y"
+#line 229 "reconocedor.y"
                           {insertID((yyvsp[-2].nombre), (yyvsp[0].entero));}
-#line 1589 "reconocedor.tab.c"
+#line 1611 "reconocedor.tab.c"
     break;
 
   case 8:
-#line 210 "reconocedor.y"
+#line 232 "reconocedor.y"
                 {(yyval.entero) = INTEGER_NUMBER_VALUE;}
-#line 1595 "reconocedor.tab.c"
+#line 1617 "reconocedor.tab.c"
     break;
 
   case 9:
-#line 211 "reconocedor.y"
+#line 233 "reconocedor.y"
                 {(yyval.entero) = FLOATING_POINT_NUMBER_VALUE;}
-#line 1601 "reconocedor.tab.c"
+#line 1623 "reconocedor.tab.c"
+    break;
+
+  case 14:
+#line 246 "reconocedor.y"
+                                                                                            {
+                                                                                              insertFunc((yyvsp[-9].nombre), (yyvsp[-4].entero), numParam, tslHead, (yyvsp[-1].arbol));
+                                                                                              numParam = 0;
+                                                                                            }
+#line 1632 "reconocedor.tab.c"
+    break;
+
+  case 15:
+#line 250 "reconocedor.y"
+                                                       {
+                                                        insertFunc((yyvsp[-6].nombre), (yyvsp[-1].entero), numParam, tslHead, NULL);
+                                                        numParam = 0;
+                                                        }
+#line 1641 "reconocedor.tab.c"
+    break;
+
+  case 18:
+#line 258 "reconocedor.y"
+                            {numParam++;}
+#line 1647 "reconocedor.tab.c"
+    break;
+
+  case 19:
+#line 259 "reconocedor.y"
+               {numParam++;}
+#line 1653 "reconocedor.tab.c"
+    break;
+
+  case 20:
+#line 262 "reconocedor.y"
+                      {insertIDFunc(&tslHead, (yyvsp[-2].nombre),(yyvsp[0].entero));}
+#line 1659 "reconocedor.tab.c"
+    break;
+
+  case 25:
+#line 274 "reconocedor.y"
+                                     {insertIDFunc(&tslHead, (yyvsp[-2].nombre), (yyvsp[0].entero));}
+#line 1665 "reconocedor.tab.c"
     break;
 
   case 26:
-#line 251 "reconocedor.y"
+#line 279 "reconocedor.y"
                       {
 
                           ASR *nodoID;
@@ -1609,19 +1673,19 @@ yyreduce:
                           (yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, SET, STMT, nodoID, (yyvsp[0].arbol), NULL, NULL, NULL);
 
                        }
-#line 1613 "reconocedor.tab.c"
+#line 1677 "reconocedor.tab.c"
     break;
 
   case 27:
-#line 259 "reconocedor.y"
+#line 287 "reconocedor.y"
                                    {
      				                         (yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, IF, IF_STMT, (yyvsp[-2].arbol), (yyvsp[0].arbol), NULL, NULL, NULL);
      				                       }
-#line 1621 "reconocedor.tab.c"
+#line 1685 "reconocedor.tab.c"
     break;
 
   case 28:
-#line 263 "reconocedor.y"
+#line 291 "reconocedor.y"
                                                                    {
      							   ASR *nodoID = nuevoNodo(NOTHING, NOTHING, (char *)(yyvsp[-8].nombre), ID_VALUE, FOR, NULL, NULL, NULL, NULL, NULL);
      							   ASR *nodoSet = nuevoNodo(NOTHING, NOTHING, NULL, SET, FOR, nodoID, (yyvsp[-6].arbol), NULL, NULL, NULL);
@@ -1630,219 +1694,219 @@ yyreduce:
      							   ASR *nodoSet2 = nuevoNodo(NOTHING, NOTHING, NULL, SET, FOR, nodoID, nodoStep, NULL, NULL, NULL);
      							   (yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, FOR, ITER_STMT, nodoSet, nodoLt, nodoSet2, (yyvsp[0].arbol), NULL);
      							  }
-#line 1634 "reconocedor.tab.c"
+#line 1698 "reconocedor.tab.c"
     break;
 
   case 29:
-#line 272 "reconocedor.y"
+#line 300 "reconocedor.y"
                    {
      		ASR *nodoID;
      		nodoID = nuevoNodo(NOTHING,NOTHING, (char *)(yyvsp[0].nombre), ID_VALUE,READ, NULL, NULL, NULL, NULL, NULL);
      		(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, READ, STMT, nodoID, NULL, NULL, NULL, NULL);
      		}
-#line 1644 "reconocedor.tab.c"
-    break;
-
-  case 30:
-#line 278 "reconocedor.y"
-                                             {
-     					                                  (yyval.arbol) = nuevoNodo(NOTHING,NOTHING,NULL, IFELSE , IF_STMT , (yyvsp[-4].arbol),(yyvsp[-2].arbol),(yyvsp[0].arbol), NULL, NULL);
-     					                               }
-#line 1652 "reconocedor.tab.c"
-    break;
-
-  case 31:
-#line 283 "reconocedor.y"
-                                        {
-     					 (yyval.arbol) = nuevoNodo(NOTHING,NOTHING,NULL,WHILE, ITER_STMT, (yyvsp[-2].arbol), (yyvsp[0].arbol), NULL, NULL, NULL);
-     					 }
-#line 1660 "reconocedor.tab.c"
-    break;
-
-  case 32:
-#line 287 "reconocedor.y"
-                                                  {
-     						 (yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, REPEAT, ITER_STMT, (yyvsp[-4].arbol), (yyvsp[-1].arbol), NULL, NULL, NULL);
-     						}
-#line 1668 "reconocedor.tab.c"
-    break;
-
-  case 33:
-#line 291 "reconocedor.y"
-                      {
-     		   (yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, PRINT, STMT, (yyvsp[0].arbol), NULL, NULL, NULL, NULL);
-     		   }
-#line 1676 "reconocedor.tab.c"
-    break;
-
-  case 34:
-#line 295 "reconocedor.y"
-                       {
-           (yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, RETURN, STMT, (yyvsp[0].arbol), NULL, NULL, NULL, NULL);
-     }
-#line 1684 "reconocedor.tab.c"
-    break;
-
-  case 35:
-#line 298 "reconocedor.y"
-                         {(yyval.arbol) = (yyvsp[-1].arbol);}
-#line 1690 "reconocedor.tab.c"
-    break;
-
-  case 36:
-#line 301 "reconocedor.y"
-                     {(yyval.arbol) = (yyvsp[0].arbol);}
-#line 1696 "reconocedor.tab.c"
-    break;
-
-  case 37:
-#line 302 "reconocedor.y"
-                   {(yyval.arbol) = NULL;}
-#line 1702 "reconocedor.tab.c"
-    break;
-
-  case 38:
-#line 304 "reconocedor.y"
-                              {(yyval.arbol) = nuevoNodo(NOTHING,NOTHING,NULL,PYC, STMT_LST, (yyvsp[-2].arbol),(yyvsp[0].arbol), NULL, NULL, NULL);}
 #line 1708 "reconocedor.tab.c"
     break;
 
-  case 39:
-#line 305 "reconocedor.y"
-                {(yyval.arbol) = nuevoNodo(NOTHING,NOTHING,NULL,PYC_S, STMT_LST, (yyvsp[0].arbol), NULL, NULL, NULL, NULL);}
-#line 1714 "reconocedor.tab.c"
+  case 30:
+#line 306 "reconocedor.y"
+                                             {
+     					                                  (yyval.arbol) = nuevoNodo(NOTHING,NOTHING,NULL, IFELSE , IF_STMT , (yyvsp[-4].arbol),(yyvsp[-2].arbol),(yyvsp[0].arbol), NULL, NULL);
+     					                               }
+#line 1716 "reconocedor.tab.c"
     break;
 
-  case 40:
-#line 308 "reconocedor.y"
-                       {(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, PLUS, EXPR, (yyvsp[-2].arbol), (yyvsp[0].arbol), NULL, NULL, NULL);}
-#line 1720 "reconocedor.tab.c"
+  case 31:
+#line 311 "reconocedor.y"
+                                        {
+     					 (yyval.arbol) = nuevoNodo(NOTHING,NOTHING,NULL,WHILE, ITER_STMT, (yyvsp[-2].arbol), (yyvsp[0].arbol), NULL, NULL, NULL);
+     					 }
+#line 1724 "reconocedor.tab.c"
     break;
 
-  case 41:
-#line 309 "reconocedor.y"
-                        {(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, MINUS, EXPR, (yyvsp[-2].arbol), (yyvsp[0].arbol), NULL, NULL, NULL);}
-#line 1726 "reconocedor.tab.c"
-    break;
-
-  case 42:
-#line 310 "reconocedor.y"
-            {(yyval.arbol) = (yyvsp[0].arbol);}
+  case 32:
+#line 315 "reconocedor.y"
+                                                  {
+     						 (yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, REPEAT, ITER_STMT, (yyvsp[-4].arbol), (yyvsp[-1].arbol), NULL, NULL, NULL);
+     						}
 #line 1732 "reconocedor.tab.c"
     break;
 
-  case 43:
-#line 313 "reconocedor.y"
-                        {(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, STAR, EXPR, (yyvsp[-2].arbol), (yyvsp[0].arbol), NULL, NULL, NULL);}
-#line 1738 "reconocedor.tab.c"
-    break;
-
-  case 44:
-#line 314 "reconocedor.y"
-                       {(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, FORWARD_SLASH, EXPR, (yyvsp[-2].arbol), (yyvsp[0].arbol), NULL, NULL, NULL);}
-#line 1744 "reconocedor.tab.c"
-    break;
-
-  case 45:
-#line 315 "reconocedor.y"
-              {(yyval.arbol) = (yyvsp[0].arbol);}
-#line 1750 "reconocedor.tab.c"
-    break;
-
-  case 46:
+  case 33:
 #line 319 "reconocedor.y"
-                        {(yyval.arbol) = (yyvsp[-1].arbol);}
-#line 1756 "reconocedor.tab.c"
+                      {
+     		   (yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, PRINT, STMT, (yyvsp[0].arbol), NULL, NULL, NULL, NULL);
+     		   }
+#line 1740 "reconocedor.tab.c"
     break;
 
-  case 47:
-#line 320 "reconocedor.y"
-              {(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, (char*)(yyvsp[0].nombre), ID_VALUE, FACTOR, NULL, NULL, NULL, NULL, NULL);}
-#line 1762 "reconocedor.tab.c"
-    break;
-
-  case 48:
-#line 321 "reconocedor.y"
-              {(yyval.arbol) = nuevoNodo((int)(yyvsp[0].arbol), NOTHING, NULL, INTEGER_NUMBER_VALUE, TERM, NULL, NULL, NULL, NULL, NULL);}
-#line 1768 "reconocedor.tab.c"
-    break;
-
-  case 49:
-#line 322 "reconocedor.y"
-               {(yyval.arbol) = nuevoNodo(NOTHING, doubleVal, NULL, FLOATING_POINT_NUMBER_VALUE, TERM, NULL, NULL, NULL, NULL, NULL);}
-#line 1774 "reconocedor.tab.c"
-    break;
-
-  case 50:
+  case 34:
 #line 323 "reconocedor.y"
-                                {(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, (char *)(yyvsp[-3].nombre), FUNCTION_VALUE, TERM, (yyvsp[-1].arbol), NULL, NULL, NULL, NULL);}
-#line 1780 "reconocedor.tab.c"
+                       {
+           (yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, RETURN, STMT, (yyvsp[0].arbol), NULL, NULL, NULL, NULL);
+     }
+#line 1748 "reconocedor.tab.c"
     break;
 
-  case 51:
-#line 327 "reconocedor.y"
-          {
-            (yyval.arbol) = (yyvsp[0].arbol);
-          }
-#line 1788 "reconocedor.tab.c"
+  case 35:
+#line 326 "reconocedor.y"
+                         {(yyval.arbol) = (yyvsp[-1].arbol);}
+#line 1754 "reconocedor.tab.c"
     break;
 
-  case 52:
-#line 331 "reconocedor.y"
-          {
-            (yyval.arbol) = NULL;
-          }
+  case 36:
+#line 329 "reconocedor.y"
+                     {(yyval.arbol) = (yyvsp[0].arbol);}
+#line 1760 "reconocedor.tab.c"
+    break;
+
+  case 37:
+#line 330 "reconocedor.y"
+                   {(yyval.arbol) = NULL;}
+#line 1766 "reconocedor.tab.c"
+    break;
+
+  case 38:
+#line 332 "reconocedor.y"
+                              {(yyval.arbol) = nuevoNodo(NOTHING,NOTHING,NULL,PYC, STMT_LST, (yyvsp[-2].arbol),(yyvsp[0].arbol), NULL, NULL, NULL);}
+#line 1772 "reconocedor.tab.c"
+    break;
+
+  case 39:
+#line 333 "reconocedor.y"
+                {(yyval.arbol) = nuevoNodo(NOTHING,NOTHING,NULL,PYC_S, STMT_LST, (yyvsp[0].arbol), NULL, NULL, NULL, NULL);}
+#line 1778 "reconocedor.tab.c"
+    break;
+
+  case 40:
+#line 336 "reconocedor.y"
+                       {(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, PLUS, EXPR, (yyvsp[-2].arbol), (yyvsp[0].arbol), NULL, NULL, NULL);}
+#line 1784 "reconocedor.tab.c"
+    break;
+
+  case 41:
+#line 337 "reconocedor.y"
+                        {(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, MINUS, EXPR, (yyvsp[-2].arbol), (yyvsp[0].arbol), NULL, NULL, NULL);}
+#line 1790 "reconocedor.tab.c"
+    break;
+
+  case 42:
+#line 338 "reconocedor.y"
+            {(yyval.arbol) = (yyvsp[0].arbol);}
 #line 1796 "reconocedor.tab.c"
     break;
 
+  case 43:
+#line 341 "reconocedor.y"
+                        {(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, STAR, EXPR, (yyvsp[-2].arbol), (yyvsp[0].arbol), NULL, NULL, NULL);}
+#line 1802 "reconocedor.tab.c"
+    break;
+
+  case 44:
+#line 342 "reconocedor.y"
+                       {(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, FORWARD_SLASH, EXPR, (yyvsp[-2].arbol), (yyvsp[0].arbol), NULL, NULL, NULL);}
+#line 1808 "reconocedor.tab.c"
+    break;
+
+  case 45:
+#line 343 "reconocedor.y"
+              {(yyval.arbol) = (yyvsp[0].arbol);}
+#line 1814 "reconocedor.tab.c"
+    break;
+
+  case 46:
+#line 347 "reconocedor.y"
+                        {(yyval.arbol) = (yyvsp[-1].arbol);}
+#line 1820 "reconocedor.tab.c"
+    break;
+
+  case 47:
+#line 348 "reconocedor.y"
+              {(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, (char*)(yyvsp[0].nombre), ID_VALUE, FACTOR, NULL, NULL, NULL, NULL, NULL);}
+#line 1826 "reconocedor.tab.c"
+    break;
+
+  case 48:
+#line 349 "reconocedor.y"
+              {(yyval.arbol) = nuevoNodo((int)(yyvsp[0].arbol), NOTHING, NULL, INTEGER_NUMBER_VALUE, TERM, NULL, NULL, NULL, NULL, NULL);}
+#line 1832 "reconocedor.tab.c"
+    break;
+
+  case 49:
+#line 350 "reconocedor.y"
+               {(yyval.arbol) = nuevoNodo(NOTHING, doubleVal, NULL, FLOATING_POINT_NUMBER_VALUE, TERM, NULL, NULL, NULL, NULL, NULL);}
+#line 1838 "reconocedor.tab.c"
+    break;
+
+  case 50:
+#line 351 "reconocedor.y"
+                                {(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, (char *)(yyvsp[-3].nombre), FUNCTION_VALUE, TERM, (yyvsp[-1].arbol), NULL, NULL, NULL, NULL);}
+#line 1844 "reconocedor.tab.c"
+    break;
+
+  case 51:
+#line 355 "reconocedor.y"
+          {
+            (yyval.arbol) = (yyvsp[0].arbol);
+          }
+#line 1852 "reconocedor.tab.c"
+    break;
+
+  case 52:
+#line 359 "reconocedor.y"
+          {
+            (yyval.arbol) = NULL;
+          }
+#line 1860 "reconocedor.tab.c"
+    break;
+
   case 53:
-#line 337 "reconocedor.y"
+#line 365 "reconocedor.y"
           {
             (yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, PARAMETER_VALUE, EXPR_LST, (yyvsp[0].arbol), (yyvsp[-2].arbol), NULL, NULL, NULL);
           }
-#line 1804 "reconocedor.tab.c"
+#line 1868 "reconocedor.tab.c"
     break;
 
   case 54:
-#line 341 "reconocedor.y"
+#line 369 "reconocedor.y"
           {
             (yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, PARAMETER_VALUE, EXPR_LST, (yyvsp[0].arbol), NULL, NULL, NULL, NULL);
           }
-#line 1812 "reconocedor.tab.c"
+#line 1876 "reconocedor.tab.c"
     break;
 
   case 55:
-#line 345 "reconocedor.y"
+#line 373 "reconocedor.y"
                               {(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, LT, EXPRESION, (yyvsp[-2].arbol), (yyvsp[0].arbol), NULL, NULL, NULL);}
-#line 1818 "reconocedor.tab.c"
+#line 1882 "reconocedor.tab.c"
     break;
 
   case 56:
-#line 346 "reconocedor.y"
+#line 374 "reconocedor.y"
                                {(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, GT, EXPRESION, (yyvsp[-2].arbol), (yyvsp[0].arbol), NULL, NULL, NULL);}
-#line 1824 "reconocedor.tab.c"
+#line 1888 "reconocedor.tab.c"
     break;
 
   case 57:
-#line 347 "reconocedor.y"
+#line 375 "reconocedor.y"
                              {(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, EQ, EXPRESION, (yyvsp[-2].arbol), (yyvsp[0].arbol), NULL, NULL, NULL);}
-#line 1830 "reconocedor.tab.c"
+#line 1894 "reconocedor.tab.c"
     break;
 
   case 58:
-#line 348 "reconocedor.y"
+#line 376 "reconocedor.y"
                               {(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, LEQ, EXPRESION, (yyvsp[-2].arbol), (yyvsp[0].arbol), NULL, NULL, NULL);}
-#line 1836 "reconocedor.tab.c"
+#line 1900 "reconocedor.tab.c"
     break;
 
   case 59:
-#line 349 "reconocedor.y"
+#line 377 "reconocedor.y"
                               {(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, GEQ, EXPRESION, (yyvsp[-2].arbol), (yyvsp[0].arbol), NULL, NULL, NULL);}
-#line 1842 "reconocedor.tab.c"
+#line 1906 "reconocedor.tab.c"
     break;
 
 
-#line 1846 "reconocedor.tab.c"
+#line 1910 "reconocedor.tab.c"
 
       default: break;
     }
@@ -2074,7 +2138,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 354 "reconocedor.y"
+#line 382 "reconocedor.y"
 
 
 
@@ -2124,6 +2188,35 @@ void printList() {
 
 }
 
+void printListTsl() {
+  struct nodoTS * ptr = tslHead;
+
+  printf("\n[ ");
+
+	while(ptr != NULL) {
+	 if(ptr->type == INTEGER_NUMBER_VALUE) printf("(%s, int, %d) ",ptr->nombre, ptr->value.intVal);
+	 else if(ptr->type == FLOATING_POINT_NUMBER_VALUE) printf("(%s, float, %.2f) ", ptr->nombre, ptr->value.doubleVal);
+	 ptr = ptr->next;
+	}
+
+	printf(" ] \n\n");
+}
+
+void printListTsf() {
+
+  struct nodoTSF * ptr = functionSymbolTableHead;
+
+  printf("\n[ ");
+
+	while(ptr != NULL) {
+	 if(ptr->returnType == INTEGER_NUMBER_VALUE) printf("(%s, # params: %d, return type: int) ",ptr->nombre, ptr->numParams);
+	 else if(ptr->returnType == FLOATING_POINT_NUMBER_VALUE) printf("(%s, # params: %d, return type: float) ", ptr->nombre, ptr->numParams);
+	 ptr = ptr->next;
+	}
+
+	printf(" ] \n\n");
+}
+
 ASR * nuevoNodo(int iVal, double dVal, char* idName, int type, int parentNodeType, ASR * ptr1, ASR * ptr2, ASR * ptr3, ASR * ptr4, ASR * nextNode) {
 
    ASR * newNodePtr = (ASR *) malloc(sizeof(ASR));
@@ -2165,6 +2258,31 @@ struct nodoTS * insertID(char * id, int tipo) {
 	link->nombre = id;
 	link->next = head;
 	head = link;
+
+}
+
+void insertFunc(char * id, int returnType, int numParams, struct nodoTS * tsl, ASR * cuerpo){
+  struct nodoTSF * newFunc = (struct nodoTSF *) malloc(sizeof(struct nodoTSF));
+
+  newFunc->nombre = id;
+  newFunc->returnType = returnType;
+  newFunc->numParams = numParams;
+  newFunc->tsl = tsl;
+  newFunc->cuerpo = cuerpo;
+
+  newFunc->next = functionSymbolTableHead;
+  functionSymbolTableHead = newFunc;
+
+}
+
+void insertIDFunc(struct nodoTS** tslHead, char * id, int tipo){
+  struct nodoTS * newNode = (struct nodoTS *) malloc(sizeof(struct nodoTS));
+
+  newNode->type = tipo;
+  newNode->value.intVal = 0;
+  newNode->nombre = id;
+  newNode->next = (struct nodoTS*)(*tslHead);
+  *tslHead = newNode;
 
 }
 

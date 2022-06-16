@@ -22,6 +22,8 @@
 
 double doubleVal;
 
+int numParam = 0;
+
  enum SyntaxTreeNodeType {
   PROGRAM,
   PYC,
@@ -118,6 +120,7 @@ struct nodoTS {
     }value;
     struct nodoTS * next;
 };
+
 // Definimos una estructura para hacer el árbol sintáctico reducIDo.
 typedef struct asr ASR;
 struct asr {
@@ -132,6 +135,15 @@ struct asr {
   ASR *next;
 };
 
+struct nodoTSF {
+  char * nombre;
+  int returnType;
+  int numParams;
+  struct nodoTS * tsl;
+  ASR * cuerpo;
+  struct nodoTSF * next;
+};
+
 
 
 
@@ -142,7 +154,11 @@ extern char * yytext;
 extern FILE *yyin;
 //void findID(char * id);
 struct nodoTS * insertID(char* id, int tipo);
+void insertFunc(char*, int, int, struct nodoTS*, ASR*);
+void insertIDFunc(struct nodoTS**, char*, int);
 void printList();
+void printListTsl();
+void printListTsf();
 void printTree(ASR * raiz);
 void interpreta(ASR * raiz);
 
@@ -150,7 +166,9 @@ void interpreta(ASR * raiz);
 
 
 struct nodoTS * head;
-struct nodoTS * current;
+struct nodoTS * tslHead;
+struct nodoTSF * functionSymbolTableHead;
+
 %}
 
 %union {
@@ -171,8 +189,8 @@ struct nodoTS * current;
 %token SUMA RESTA MULT DIV PARI PARF BGN END COLON SEMI ASSIGN EQUAL LESSER GREATER LEQUAL GEQUAL LARROW RES_FOR RES_DO RES_WHILE RES_IF THEN ELSE INT FLOAT RES_REPEAT UNTIL RES_STEP RES_PROGRAM VAR RES_READ RES_PRINT INTEGER FLOATING RES_FUN COMMA RES_RETURN
 %token <nombre> ID
 %type <entero> type
-%type <arbol> prog stmt opt_stmts stmt_lst expr term factor expression expr_lst opt_exprs SUMA RESTA MULT DIV PARI PARF BGN END COLON SEMI ASSIGN EQUAL LESSER GREATER LEQUAL GEQUAL LARROW RES_FOR RES_DO RES_WHILE RES_IF THEN ELSE INT FLOAT RES_REPEAT UNTIL RES_STEP RES_PROGRAM VAR RES_READ RES_PRINT
-%type <val> decl
+%type <arbol> prog stmt opt_stmts stmt_lst expr term factor expression expr_lst opt_exprs fun_decl SUMA RESTA MULT DIV PARI PARF BGN END COLON SEMI ASSIGN EQUAL LESSER GREATER LEQUAL GEQUAL LARROW RES_FOR RES_DO RES_WHILE RES_IF THEN ELSE INT FLOAT RES_REPEAT UNTIL RES_STEP RES_PROGRAM VAR RES_READ RES_PRINT
+%type <val> decl oparams
 %start prog
 
 %precedence THEN
@@ -188,6 +206,10 @@ prog : RES_PROGRAM ID opt_decls opt_fun_decls BGN opt_stmts END  {
 						   printList();
 						    printf("########## ARBOL SINTACTICO REDUCIDO ############\n\n");
 						   printTree(nodoRoot);
+                printf("########## TABLA DE SIMBOLOS DE FUNCIONES ############\n\n");
+                printListTsl();
+                printf("########## TABLA DE FUNCIONES ############\n\n");
+                printListTsf();
                 printf("########## START OF PROGRAM OUTPUT ############\n\n");
                 interpreta(nodoRoot);
                 printf("########## END OF PROGRAM OUTPUT ############\n\n");
@@ -221,16 +243,23 @@ fun_decls : fun_decls fun_decl
           | fun_decl
 ;
 fun_decl : RES_FUN ID PARI oparams PARF COLON type opt_decls_for_function BGN opt_stmts END
-        | RES_FUN ID PARI oparams PARF COLON type SEMI
+                                                                                            {
+                                                                                              insertFunc($2, $7, numParam, tslHead, $10);
+                                                                                              numParam = 0;
+                                                                                            }
+        | RES_FUN ID PARI oparams PARF COLON type SEMI {
+                                                        insertFunc($2, $7, numParam, tslHead, NULL);
+                                                        numParam = 0;
+                                                        }
 ;
 oparams : params
         | %empty
 ;
-params : param COMMA params
-       | param
+params : param COMMA params {numParam++;}
+       | param {numParam++;}
 ;
 
-param : ID COLON type
+param : ID COLON type {insertIDFunc(&tslHead, $1,$3);}
 ;
 
 
@@ -242,8 +271,7 @@ decls_for_function : dec_for_function SEMI decls_for_function
                    | dec_for_function
 ;
 
-dec_for_function : VAR ID COLON type
-
+dec_for_function : VAR ID COLON type {insertIDFunc(&tslHead, $2, $4);}
 ;
 
 
@@ -400,6 +428,35 @@ void printList() {
 
 }
 
+void printListTsl() {
+  struct nodoTS * ptr = tslHead;
+
+  printf("\n[ ");
+
+	while(ptr != NULL) {
+	 if(ptr->type == INTEGER_NUMBER_VALUE) printf("(%s, int, %d) ",ptr->nombre, ptr->value.intVal);
+	 else if(ptr->type == FLOATING_POINT_NUMBER_VALUE) printf("(%s, float, %.2f) ", ptr->nombre, ptr->value.doubleVal);
+	 ptr = ptr->next;
+	}
+
+	printf(" ] \n\n");
+}
+
+void printListTsf() {
+
+  struct nodoTSF * ptr = functionSymbolTableHead;
+
+  printf("\n[ ");
+
+	while(ptr != NULL) {
+	 if(ptr->returnType == INTEGER_NUMBER_VALUE) printf("(%s, # params: %d, return type: int) ",ptr->nombre, ptr->numParams);
+	 else if(ptr->returnType == FLOATING_POINT_NUMBER_VALUE) printf("(%s, # params: %d, return type: float) ", ptr->nombre, ptr->numParams);
+	 ptr = ptr->next;
+	}
+
+	printf(" ] \n\n");
+}
+
 ASR * nuevoNodo(int iVal, double dVal, char* idName, int type, int parentNodeType, ASR * ptr1, ASR * ptr2, ASR * ptr3, ASR * ptr4, ASR * nextNode) {
 
    ASR * newNodePtr = (ASR *) malloc(sizeof(ASR));
@@ -441,6 +498,31 @@ struct nodoTS * insertID(char * id, int tipo) {
 	link->nombre = id;
 	link->next = head;
 	head = link;
+
+}
+
+void insertFunc(char * id, int returnType, int numParams, struct nodoTS * tsl, ASR * cuerpo){
+  struct nodoTSF * newFunc = (struct nodoTSF *) malloc(sizeof(struct nodoTSF));
+
+  newFunc->nombre = id;
+  newFunc->returnType = returnType;
+  newFunc->numParams = numParams;
+  newFunc->tsl = tsl;
+  newFunc->cuerpo = cuerpo;
+
+  newFunc->next = functionSymbolTableHead;
+  functionSymbolTableHead = newFunc;
+
+}
+
+void insertIDFunc(struct nodoTS** tslHead, char * id, int tipo){
+  struct nodoTS * newNode = (struct nodoTS *) malloc(sizeof(struct nodoTS));
+
+  newNode->type = tipo;
+  newNode->value.intVal = 0;
+  newNode->nombre = id;
+  newNode->next = (struct nodoTS*)(*tslHead);
+  *tslHead = newNode;
 
 }
 
