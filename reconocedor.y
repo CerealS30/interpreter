@@ -974,21 +974,122 @@ void printTree(ASR * node){
     printTree(node->arrPtr[i]);
 }
 
-int traverseTree(ASR * node, int count){
-  if(node->arrPtr[0] == NULL){
-    return count;
+int traverseTree(ASR * node, int c){
+  if(!node)
+   return 0;
+
+  int count = 0;
+
+  if(c <= 2)
+    count += (node->type == PARAMETER_VALUE);
+
+  for(int i = 0; i < 4; i++){
+    count += traverseTree(node->arrPtr[i], c + (node->type == PARAMETER_VALUE));
   }
+
+  return count;
+
+
+}
+
+void obtainType(struct nodoTS * tsl){
+  struct nodoTS * ptr = tsl;
+
+  while(ptr != NULL){
+    if(ptr->type == INTEGER_NUMBER_VALUE) printf("(int, %d) ",ptr->value.intVal);
+    else if(ptr->type == FLOATING_POINT_NUMBER_VALUE) printf("(float, %.2f) ", ptr->value.doubleVal);
+
+    ptr = ptr->next;
+  }
+}
+
+ASR * getNextPassedParameter(ASR ** ptrPtrFuncNodeSubStree){
+
+  assert(*ptrPtrFuncNodeSubStree);
+  ASR  *ptrNextPassedParameter = NULL;
+
+  if((*ptrPtrFuncNodeSubStree)->type == FUNCTION_VALUE){
+
+    assert((*ptrPtrFuncNodeSubStree)->arrPtr[0]);
+    ptrNextPassedParameter = (*ptrPtrFuncNodeSubStree)->arrPtr[0]->arrPtr[0];
+  }
+  else{
+
+    assert((*ptrPtrFuncNodeSubStree)->type == PARAMETER_VALUE);
+    ptrNextPassedParameter = (*ptrPtrFuncNodeSubStree)->arrPtr[0];
+  }
+
+  (*ptrPtrFuncNodeSubStree) = (*ptrPtrFuncNodeSubStree)->arrPtr[0]->arrPtr[1];
+
+  assert(ptrNextPassedParameter);
+  return ptrNextPassedParameter;
 }
 
 
 void func_func(ASR * nodeFunc){
   struct nodoTSF * currFunc = retrieveFromFunSymbolTable(nodeFunc->value.idName);
-  int count = 0;
+  //int count = 0;
+
+  //PART TO CHECK THAT THE AMOUNT OF PARAMS PASSED ARE THE SAME AS AMOUNT OF PARAMS IN FORMAL FUNCTION
   assert(currFunc != NULL);
+  int formalParams = currFunc->numParams;
+  printf("# params: %d\n", formalParams);
 
-  printf("# params: ", currFunc->numParams);
+  int amountOfParamsPassed = traverseTree(nodeFunc, 0);
 
-  traverseTree(nodeFunc, 0);
+  printf("# params passed: %d\n", amountOfParamsPassed);
+
+  //obtainType(currFunc->tsl);
+  assert(formalParams == amountOfParamsPassed);
+
+
+  //PART THAT CHECKS THAT THE TYPE OF THE PARAMS PASSED ARE THE SAME AS THE TYPE FOR THE PARAMS OF THE FORMAL FUNCTION
+  struct nodoTS * currParamPassed = NULL;
+
+  ASR* ptrFuncNodeSubTree = nodeFunc;
+  ASR * paramsPassed = NULL;
+
+  currParamPassed = currFunc->tsl;
+
+  for(int i = 0; i < amountOfParamsPassed; i++){
+    paramsPassed = getNextPassedParameter(&ptrFuncNodeSubTree);
+  //  printf("value of param func %d\n", currParamPassed->value.intVal);
+
+  //  printf("value of params passed %d\n", paramsPassed->value.intVal);
+    assert(currParamPassed->type == paramsPassed->type);
+
+    currParamPassed = currParamPassed->next;
+  }
+
+  //PART THAT ASSIGNS THE PARAMS PASSED TO THE LST OF THE FORMAL FUNCTION
+
+  struct nodoTS * currParamValues = NULL;
+
+  ASR* ptrFuncNodeTree = nodeFunc;
+  ASR * paramsValue = NULL;
+
+  currParamValues = currFunc->tsl;
+
+  for(int i = 0; i < amountOfParamsPassed; i++){
+    paramsPassed = getNextPassedParameter(&ptrFuncNodeTree);
+  //  printf("value of param func %d\n", currParamPassed->value.intVal);
+
+   if(currParamValues->type == INTEGER_NUMBER_VALUE){
+     currParamValues->value.intVal = func_exprInt(paramsPassed);
+     printf("value of assigned params int %d  %s\n", currParamValues->value.intVal, currParamValues->nombre);
+   }
+   else if(currParamValues->type = FLOATING_POINT_NUMBER_VALUE){
+     currParamValues->value.doubleVal = func_exprDouble(paramsPassed);
+    printf("value of assigned params float %lf\n", currParamValues->value.doubleVal);
+   }
+
+    currParamValues = currParamValues->next;
+  }
+
+
+  struct nodoTSF * funcSymbol = retrieveFromFunSymbolTable(nodeFunc->value.idName);
+  printListTsl(funcSymbol->tsl, "prueba");
+
 
 }
 
@@ -1028,14 +1129,16 @@ void func_print(ASR * printNode){
   } else if(printNode->arrPtr[0]->parentNodeType == EXPR
     || printNode->arrPtr[0]->parentNodeType == TERM
     || printNode->arrPtr[0]->parentNodeType == FACTOR){
+      printf("yupiyupiyupo\n");
 
-
-    /*  if(printNode->arrPtr[0]->type == FUNCTION_VALUE){
+    if(printNode->arrPtr[0]->type == FUNCTION_VALUE){
 
       func_func(printNode->arrPtr[0]);
+
+    }
       // As we know that this is a function, then we know that this symbol must exist in the symbol table
       // of the main function, so directly call the auxiliary method that looks in that specific symbol table.
-      struct SymbolTableNode* currFunc = auxRetrieveFromSymbolTable(printNode->arrPtr[0]->value.idName, mainFunctionSymbolTableHead);
+      /*struct SymbolTableNode* currFunc = auxRetrieveFromSymbolTable(printNode->arrPtr[0]->value.idName, mainFunctionSymbolTableHead);
 
       if(currFunc->returnType == INTEGER_NUMBER_VALUE){
 
@@ -1050,8 +1153,10 @@ void func_print(ASR * printNode){
       }
 
       popFunctionCallToStack();
-    }
-    else{*/
+    }*/
+    else{
+      printf("yihayhayoa\n");
+      printf("%d\n", printNode->arrPtr[0]->value.intVal);
       if(isIntegerExpr(printNode->arrPtr[0])){
 
         printf("%d\n", func_exprInt(printNode->arrPtr[0]));
@@ -1063,7 +1168,7 @@ void func_print(ASR * printNode){
       }
     }
   }
-//}
+}
 
   void func_assign(ASR * setNode){
 
@@ -1158,11 +1263,19 @@ void func_print(ASR * printNode){
 
  void interpreta(ASR * node){
 
+   /*struct nodoTSF * funcSymbol = retrieveFromFunSymbolTable("add");
+   ASR * node = funcSymbol->cuerpo;*/
    if(node == NULL)
    return;
 
    switch (node->type) {
      case PROGRAM:
+     break;
+
+     case PYC:
+     break;
+
+     case PYC_S:
      break;
 
      case PRINT:

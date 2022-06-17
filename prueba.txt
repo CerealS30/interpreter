@@ -4,15 +4,11 @@ var t:int
 
 fun add(tres:int , cuatro:int) : int
 begin
-return tres+cuatro
-end
-
-fun subtract(uno:int , dos:int) : int
-begin
-return uno+dos
+print tres
 end
 
 begin
-print add(1,2);
-t<-5
+print 5;
+print add(1,2)
+
 end
