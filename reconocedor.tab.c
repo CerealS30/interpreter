@@ -80,6 +80,8 @@
 double doubleVal;
 
 int numParam = 0;
+int funcRunning = 0;
+char * currentFuncName;
 
  enum SyntaxTreeNodeType {
   PROGRAM,
@@ -229,7 +231,7 @@ struct nodoTS * tslHead;
 struct nodoTSF * functionSymbolTableHead;
 
 
-#line 233 "reconocedor.tab.c"
+#line 235 "reconocedor.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -322,7 +324,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 176 "reconocedor.y"
+#line 178 "reconocedor.y"
 
    struct nodoTS * val;
    char * nombre;
@@ -331,7 +333,7 @@ union YYSTYPE
    union valor *f;
    struct asr * arbol;  // Para los apuntadores a �rbol sint�ctico
 
-#line 335 "reconocedor.tab.c"
+#line 337 "reconocedor.tab.c"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -710,12 +712,12 @@ static const yytype_int8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
-       0,   203,   203,   222,   223,   227,   228,   231,   234,   235,
-     240,   241,   244,   245,   247,   253,   258,   259,   261,   262,
-     265,   269,   270,   273,   274,   277,   282,   290,   294,   303,
-     309,   313,   318,   322,   326,   329,   332,   333,   335,   336,
-     339,   340,   341,   344,   345,   346,   350,   351,   352,   353,
-     354,   356,   360,   366,   370,   375,   376,   377,   378,   379
+       0,   205,   205,   224,   225,   229,   230,   233,   236,   237,
+     242,   243,   246,   247,   249,   255,   260,   261,   263,   264,
+     267,   271,   272,   275,   276,   279,   284,   292,   296,   305,
+     311,   315,   320,   324,   328,   331,   334,   335,   337,   338,
+     341,   342,   343,   346,   347,   348,   352,   353,   354,   355,
+     356,   358,   362,   368,   372,   377,   378,   379,   380,   381
 };
 #endif
 
@@ -1585,7 +1587,7 @@ yyreduce:
   switch (yyn)
     {
   case 2:
-#line 203 "reconocedor.y"
+#line 205 "reconocedor.y"
                                                                  {
 						   ASR *nodoRoot;
 						   nodoRoot = nuevoNodo(NOTHING, NOTHING, NULL, PROGRAM, NOTHING, (yyvsp[-1].arbol), NULL, NULL, NULL, NULL);
@@ -1603,72 +1605,72 @@ yyreduce:
                 printf("########## END OF PROGRAM OUTPUT ############\n\n");
 						   exit(0);
 						 }
-#line 1607 "reconocedor.tab.c"
+#line 1609 "reconocedor.tab.c"
     break;
 
   case 7:
-#line 231 "reconocedor.y"
+#line 233 "reconocedor.y"
                           {insertID((yyvsp[-2].nombre), (yyvsp[0].entero));}
-#line 1613 "reconocedor.tab.c"
+#line 1615 "reconocedor.tab.c"
     break;
 
   case 8:
-#line 234 "reconocedor.y"
+#line 236 "reconocedor.y"
                 {(yyval.entero) = INTEGER_NUMBER_VALUE;}
-#line 1619 "reconocedor.tab.c"
+#line 1621 "reconocedor.tab.c"
     break;
 
   case 9:
-#line 235 "reconocedor.y"
+#line 237 "reconocedor.y"
                 {(yyval.entero) = FLOATING_POINT_NUMBER_VALUE;}
-#line 1625 "reconocedor.tab.c"
+#line 1627 "reconocedor.tab.c"
     break;
 
   case 14:
-#line 248 "reconocedor.y"
+#line 250 "reconocedor.y"
                                                                                             {
                                                                                               insertFunc((yyvsp[-9].nombre), (yyvsp[-4].entero), numParam, tslHead, (yyvsp[-1].arbol));
                                                                                               numParam = 0;
                                                                                               tslHead = NULL;
                                                                                             }
-#line 1635 "reconocedor.tab.c"
+#line 1637 "reconocedor.tab.c"
     break;
 
   case 15:
-#line 253 "reconocedor.y"
+#line 255 "reconocedor.y"
                                                        {
                                                         insertFunc((yyvsp[-6].nombre), (yyvsp[-1].entero), numParam, tslHead, NULL);
                                                         numParam = 0;
                                                         }
-#line 1644 "reconocedor.tab.c"
+#line 1646 "reconocedor.tab.c"
     break;
 
   case 18:
-#line 261 "reconocedor.y"
+#line 263 "reconocedor.y"
                             {numParam++;}
-#line 1650 "reconocedor.tab.c"
+#line 1652 "reconocedor.tab.c"
     break;
 
   case 19:
-#line 262 "reconocedor.y"
+#line 264 "reconocedor.y"
                {numParam++;}
-#line 1656 "reconocedor.tab.c"
+#line 1658 "reconocedor.tab.c"
     break;
 
   case 20:
-#line 265 "reconocedor.y"
+#line 267 "reconocedor.y"
                       {insertIDFunc(&tslHead, (yyvsp[-2].nombre),(yyvsp[0].entero));}
-#line 1662 "reconocedor.tab.c"
+#line 1664 "reconocedor.tab.c"
     break;
 
   case 25:
-#line 277 "reconocedor.y"
+#line 279 "reconocedor.y"
                                      {insertIDFunc(&tslHead, (yyvsp[-2].nombre), (yyvsp[0].entero));}
-#line 1668 "reconocedor.tab.c"
+#line 1670 "reconocedor.tab.c"
     break;
 
   case 26:
-#line 282 "reconocedor.y"
+#line 284 "reconocedor.y"
                       {
 
                           ASR *nodoID;
@@ -1676,19 +1678,19 @@ yyreduce:
                           (yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, SET, STMT, nodoID, (yyvsp[0].arbol), NULL, NULL, NULL);
 
                        }
-#line 1680 "reconocedor.tab.c"
+#line 1682 "reconocedor.tab.c"
     break;
 
   case 27:
-#line 290 "reconocedor.y"
+#line 292 "reconocedor.y"
                                    {
      				                         (yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, IF, IF_STMT, (yyvsp[-2].arbol), (yyvsp[0].arbol), NULL, NULL, NULL);
      				                       }
-#line 1688 "reconocedor.tab.c"
+#line 1690 "reconocedor.tab.c"
     break;
 
   case 28:
-#line 294 "reconocedor.y"
+#line 296 "reconocedor.y"
                                                                    {
      							   ASR *nodoID = nuevoNodo(NOTHING, NOTHING, (char *)(yyvsp[-8].nombre), ID_VALUE, FOR, NULL, NULL, NULL, NULL, NULL);
      							   ASR *nodoSet = nuevoNodo(NOTHING, NOTHING, NULL, SET, FOR, nodoID, (yyvsp[-6].arbol), NULL, NULL, NULL);
@@ -1697,219 +1699,219 @@ yyreduce:
      							   ASR *nodoSet2 = nuevoNodo(NOTHING, NOTHING, NULL, SET, FOR, nodoID, nodoStep, NULL, NULL, NULL);
      							   (yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, FOR, ITER_STMT, nodoSet, nodoLt, nodoSet2, (yyvsp[0].arbol), NULL);
      							  }
-#line 1701 "reconocedor.tab.c"
+#line 1703 "reconocedor.tab.c"
     break;
 
   case 29:
-#line 303 "reconocedor.y"
+#line 305 "reconocedor.y"
                    {
      		ASR *nodoID;
      		nodoID = nuevoNodo(NOTHING,NOTHING, (char *)(yyvsp[0].nombre), ID_VALUE,READ, NULL, NULL, NULL, NULL, NULL);
      		(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, READ, STMT, nodoID, NULL, NULL, NULL, NULL);
      		}
-#line 1711 "reconocedor.tab.c"
+#line 1713 "reconocedor.tab.c"
     break;
 
   case 30:
-#line 309 "reconocedor.y"
+#line 311 "reconocedor.y"
                                              {
      					                                  (yyval.arbol) = nuevoNodo(NOTHING,NOTHING,NULL, IFELSE , IF_STMT , (yyvsp[-4].arbol),(yyvsp[-2].arbol),(yyvsp[0].arbol), NULL, NULL);
      					                               }
-#line 1719 "reconocedor.tab.c"
+#line 1721 "reconocedor.tab.c"
     break;
 
   case 31:
-#line 314 "reconocedor.y"
+#line 316 "reconocedor.y"
                                         {
      					 (yyval.arbol) = nuevoNodo(NOTHING,NOTHING,NULL,WHILE, ITER_STMT, (yyvsp[-2].arbol), (yyvsp[0].arbol), NULL, NULL, NULL);
      					 }
-#line 1727 "reconocedor.tab.c"
+#line 1729 "reconocedor.tab.c"
     break;
 
   case 32:
-#line 318 "reconocedor.y"
+#line 320 "reconocedor.y"
                                                   {
      						 (yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, REPEAT, ITER_STMT, (yyvsp[-4].arbol), (yyvsp[-1].arbol), NULL, NULL, NULL);
      						}
-#line 1735 "reconocedor.tab.c"
+#line 1737 "reconocedor.tab.c"
     break;
 
   case 33:
-#line 322 "reconocedor.y"
+#line 324 "reconocedor.y"
                       {
      		   (yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, PRINT, STMT, (yyvsp[0].arbol), NULL, NULL, NULL, NULL);
      		   }
-#line 1743 "reconocedor.tab.c"
+#line 1745 "reconocedor.tab.c"
     break;
 
   case 34:
-#line 326 "reconocedor.y"
+#line 328 "reconocedor.y"
                        {
            (yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, RETURN, STMT, (yyvsp[0].arbol), NULL, NULL, NULL, NULL);
      }
-#line 1751 "reconocedor.tab.c"
+#line 1753 "reconocedor.tab.c"
     break;
 
   case 35:
-#line 329 "reconocedor.y"
+#line 331 "reconocedor.y"
                          {(yyval.arbol) = (yyvsp[-1].arbol);}
-#line 1757 "reconocedor.tab.c"
+#line 1759 "reconocedor.tab.c"
     break;
 
   case 36:
-#line 332 "reconocedor.y"
+#line 334 "reconocedor.y"
                      {(yyval.arbol) = (yyvsp[0].arbol);}
-#line 1763 "reconocedor.tab.c"
+#line 1765 "reconocedor.tab.c"
     break;
 
   case 37:
-#line 333 "reconocedor.y"
+#line 335 "reconocedor.y"
                    {(yyval.arbol) = NULL;}
-#line 1769 "reconocedor.tab.c"
+#line 1771 "reconocedor.tab.c"
     break;
 
   case 38:
-#line 335 "reconocedor.y"
+#line 337 "reconocedor.y"
                               {(yyval.arbol) = nuevoNodo(NOTHING,NOTHING,NULL,PYC, STMT_LST, (yyvsp[-2].arbol),(yyvsp[0].arbol), NULL, NULL, NULL);}
-#line 1775 "reconocedor.tab.c"
+#line 1777 "reconocedor.tab.c"
     break;
 
   case 39:
-#line 336 "reconocedor.y"
+#line 338 "reconocedor.y"
                 {(yyval.arbol) = nuevoNodo(NOTHING,NOTHING,NULL,PYC_S, STMT_LST, (yyvsp[0].arbol), NULL, NULL, NULL, NULL);}
-#line 1781 "reconocedor.tab.c"
+#line 1783 "reconocedor.tab.c"
     break;
 
   case 40:
-#line 339 "reconocedor.y"
+#line 341 "reconocedor.y"
                        {(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, PLUS, EXPR, (yyvsp[-2].arbol), (yyvsp[0].arbol), NULL, NULL, NULL);}
-#line 1787 "reconocedor.tab.c"
+#line 1789 "reconocedor.tab.c"
     break;
 
   case 41:
-#line 340 "reconocedor.y"
+#line 342 "reconocedor.y"
                         {(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, MINUS, EXPR, (yyvsp[-2].arbol), (yyvsp[0].arbol), NULL, NULL, NULL);}
-#line 1793 "reconocedor.tab.c"
+#line 1795 "reconocedor.tab.c"
     break;
 
   case 42:
-#line 341 "reconocedor.y"
+#line 343 "reconocedor.y"
             {(yyval.arbol) = (yyvsp[0].arbol);}
-#line 1799 "reconocedor.tab.c"
+#line 1801 "reconocedor.tab.c"
     break;
 
   case 43:
-#line 344 "reconocedor.y"
+#line 346 "reconocedor.y"
                         {(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, STAR, EXPR, (yyvsp[-2].arbol), (yyvsp[0].arbol), NULL, NULL, NULL);}
-#line 1805 "reconocedor.tab.c"
+#line 1807 "reconocedor.tab.c"
     break;
 
   case 44:
-#line 345 "reconocedor.y"
+#line 347 "reconocedor.y"
                        {(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, FORWARD_SLASH, EXPR, (yyvsp[-2].arbol), (yyvsp[0].arbol), NULL, NULL, NULL);}
-#line 1811 "reconocedor.tab.c"
+#line 1813 "reconocedor.tab.c"
     break;
 
   case 45:
-#line 346 "reconocedor.y"
+#line 348 "reconocedor.y"
               {(yyval.arbol) = (yyvsp[0].arbol);}
-#line 1817 "reconocedor.tab.c"
+#line 1819 "reconocedor.tab.c"
     break;
 
   case 46:
-#line 350 "reconocedor.y"
+#line 352 "reconocedor.y"
                         {(yyval.arbol) = (yyvsp[-1].arbol);}
-#line 1823 "reconocedor.tab.c"
+#line 1825 "reconocedor.tab.c"
     break;
 
   case 47:
-#line 351 "reconocedor.y"
+#line 353 "reconocedor.y"
               {(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, (char*)(yyvsp[0].nombre), ID_VALUE, FACTOR, NULL, NULL, NULL, NULL, NULL);}
-#line 1829 "reconocedor.tab.c"
+#line 1831 "reconocedor.tab.c"
     break;
 
   case 48:
-#line 352 "reconocedor.y"
+#line 354 "reconocedor.y"
               {(yyval.arbol) = nuevoNodo((int)(yyvsp[0].arbol), NOTHING, NULL, INTEGER_NUMBER_VALUE, TERM, NULL, NULL, NULL, NULL, NULL);}
-#line 1835 "reconocedor.tab.c"
+#line 1837 "reconocedor.tab.c"
     break;
 
   case 49:
-#line 353 "reconocedor.y"
+#line 355 "reconocedor.y"
                {(yyval.arbol) = nuevoNodo(NOTHING, doubleVal, NULL, FLOATING_POINT_NUMBER_VALUE, TERM, NULL, NULL, NULL, NULL, NULL);}
-#line 1841 "reconocedor.tab.c"
+#line 1843 "reconocedor.tab.c"
     break;
 
   case 50:
-#line 354 "reconocedor.y"
+#line 356 "reconocedor.y"
                                 {(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, (char *)(yyvsp[-3].nombre), FUNCTION_VALUE, TERM, (yyvsp[-1].arbol), NULL, NULL, NULL, NULL);}
-#line 1847 "reconocedor.tab.c"
+#line 1849 "reconocedor.tab.c"
     break;
 
   case 51:
-#line 357 "reconocedor.y"
+#line 359 "reconocedor.y"
           {
             (yyval.arbol) = (yyvsp[0].arbol);
           }
-#line 1855 "reconocedor.tab.c"
+#line 1857 "reconocedor.tab.c"
     break;
 
   case 52:
-#line 361 "reconocedor.y"
+#line 363 "reconocedor.y"
           {
             (yyval.arbol) = NULL;
           }
-#line 1863 "reconocedor.tab.c"
+#line 1865 "reconocedor.tab.c"
     break;
 
   case 53:
-#line 367 "reconocedor.y"
+#line 369 "reconocedor.y"
           {
             (yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, PARAMETER_VALUE, EXPR_LST, (yyvsp[0].arbol), (yyvsp[-2].arbol), NULL, NULL, NULL);
           }
-#line 1871 "reconocedor.tab.c"
+#line 1873 "reconocedor.tab.c"
     break;
 
   case 54:
-#line 371 "reconocedor.y"
+#line 373 "reconocedor.y"
           {
             (yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, PARAMETER_VALUE, EXPR_LST, (yyvsp[0].arbol), NULL, NULL, NULL, NULL);
           }
-#line 1879 "reconocedor.tab.c"
+#line 1881 "reconocedor.tab.c"
     break;
 
   case 55:
-#line 375 "reconocedor.y"
+#line 377 "reconocedor.y"
                               {(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, LT, EXPRESION, (yyvsp[-2].arbol), (yyvsp[0].arbol), NULL, NULL, NULL);}
-#line 1885 "reconocedor.tab.c"
+#line 1887 "reconocedor.tab.c"
     break;
 
   case 56:
-#line 376 "reconocedor.y"
+#line 378 "reconocedor.y"
                                {(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, GT, EXPRESION, (yyvsp[-2].arbol), (yyvsp[0].arbol), NULL, NULL, NULL);}
-#line 1891 "reconocedor.tab.c"
+#line 1893 "reconocedor.tab.c"
     break;
 
   case 57:
-#line 377 "reconocedor.y"
+#line 379 "reconocedor.y"
                              {(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, EQ, EXPRESION, (yyvsp[-2].arbol), (yyvsp[0].arbol), NULL, NULL, NULL);}
-#line 1897 "reconocedor.tab.c"
+#line 1899 "reconocedor.tab.c"
     break;
 
   case 58:
-#line 378 "reconocedor.y"
+#line 380 "reconocedor.y"
                               {(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, LEQ, EXPRESION, (yyvsp[-2].arbol), (yyvsp[0].arbol), NULL, NULL, NULL);}
-#line 1903 "reconocedor.tab.c"
+#line 1905 "reconocedor.tab.c"
     break;
 
   case 59:
-#line 379 "reconocedor.y"
+#line 381 "reconocedor.y"
                               {(yyval.arbol) = nuevoNodo(NOTHING, NOTHING, NULL, GEQ, EXPRESION, (yyvsp[-2].arbol), (yyvsp[0].arbol), NULL, NULL, NULL);}
-#line 1909 "reconocedor.tab.c"
+#line 1911 "reconocedor.tab.c"
     break;
 
 
-#line 1913 "reconocedor.tab.c"
+#line 1915 "reconocedor.tab.c"
 
       default: break;
     }
@@ -2141,7 +2143,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 384 "reconocedor.y"
+#line 386 "reconocedor.y"
 
 
 
@@ -2336,6 +2338,23 @@ struct nodoTS* auxRetrieveFromSymbolTable(char const *symbolName, struct nodoTS*
   return NULL;
 }
 
+struct nodoTS * retrieveFromTsl(char * simboloActual, struct nodoTS* headTsl){
+
+  struct nodoTS* currPtr = headTsl;
+
+  while(currPtr != NULL){
+
+    assert(currPtr->nombre);
+
+    if(strcmp(currPtr->nombre, simboloActual) == 0)
+      return currPtr;
+
+    currPtr = currPtr->next;
+  }
+
+  return NULL;
+}
+
 struct nodoTS* retrieveFromSymbolTable(char const *symbolName){
 
   struct nodoTS *currPtr = NULL;
@@ -2351,6 +2370,31 @@ struct nodoTS* retrieveFromSymbolTable(char const *symbolName){
 
 
   return currPtr;
+}
+
+void setIntValueToSymbolFunc(char * symbolName, int newIntegerValue, char * name){
+
+  struct nodoTSF * currIdFunc = retrieveFromFunSymbolTable(name);
+  struct nodoTS *symbolPtr = retrieveFromTsl(symbolName, currIdFunc->tsl);
+
+  if(symbolPtr != NULL){
+
+    // Check that the symbol does in fact store an integer
+    if(symbolPtr->type == INTEGER_NUMBER_VALUE){
+
+      symbolPtr->value.intVal = newIntegerValue;
+    }
+    else{
+
+      // Error out and exit!
+      printf("error");
+    }
+  }
+  else{
+
+    // Error out and exit!
+    printf("error");
+  }
 }
 
 void setIntValueToSymbol(char const *symbolName, int newIntegerValue){
@@ -2377,6 +2421,27 @@ void setIntValueToSymbol(char const *symbolName, int newIntegerValue){
   }
 }
 
+void setDoubleValueToSymbolFunc(char * symbolName, double newDoubleValue, char * name){
+
+  struct nodoTSF * currIdFunc = retrieveFromFunSymbolTable(name);
+  struct nodoTS *symbolPtr = retrieveFromTsl(symbolName, currIdFunc->tsl);
+
+  if(symbolPtr != NULL){
+
+    // Check that the symbol does in fact store a double
+    if(symbolPtr->type == FLOATING_POINT_NUMBER_VALUE){
+
+      symbolPtr->value.doubleVal = newDoubleValue;
+    }
+    else{
+
+      // Error out and exit!
+      printf("error");
+    }
+  }
+}
+
+
 void setDoubleValueToSymbol(char const *symbolName, double newDoubleValue){
 
   struct nodoTS *symbolPtr = retrieveFromSymbolTable(symbolName);
@@ -2400,7 +2465,7 @@ void setDoubleValueToSymbol(char const *symbolName, double newDoubleValue){
 
 
 int computeSubTreeNodeTypeCount(int nodeType, ASR * node){
-
+    //printf("node name = %d\n", node->type);
   if(node == NULL)
     return 0;
 
@@ -2430,11 +2495,44 @@ int computeSubTreeNodeTypeCount(int nodeType, ASR * node){
   return count;
 }
 
+int computeSubTreeNodeTypeCountFunc(int nodeType, ASR * node, char * name){
+  //printf("node name = %d\n", node->type);
+  if(node == NULL)
+    return 0;
+//  printf("ya entre 4\n");
+  int count = 0;
+
+  // In case it is a constant
+  if(node->type == nodeType){
+
+    count++;
+  }
+
+  // In case it is an ID
+  else if(node->type == ID_VALUE){
+
+    struct nodoTSF * currIdFunc = retrieveFromFunSymbolTable(name);
+    struct nodoTS * currIdNode = retrieveFromTsl(node->value.idName, currIdFunc->tsl);
+
+    if(currIdNode->type == nodeType)
+      count++;
+  }
+
+  int i = 0;
+  for(i = 0; i < 4; i++){
+
+    count += computeSubTreeNodeTypeCountFunc(nodeType, node->arrPtr[i], name);
+  }
+
+  return count;
+}
+
 int exprIsTypeConsistent(ASR * exprNode){
 
   // Count the number of subtree nodes of both data type
   // If the expression is type-consistent, then one of those counts
   // will be zero
+//  printf("ya entre a type\n");
   int intSubTreeNodeCount = computeSubTreeNodeTypeCount(INTEGER_NUMBER_VALUE, exprNode);
   int doubleSubTreeNodeCount = computeSubTreeNodeTypeCount(FLOATING_POINT_NUMBER_VALUE, exprNode);
 
@@ -2454,9 +2552,44 @@ int exprIsTypeConsistent(ASR * exprNode){
   return 0;
 }
 
-int isIntegerExpr(ASR * exprNode){
+int exprIsTypeConsistentFunc(ASR * exprNode, char * name){
 
+  // Count the number of subtree nodes of both data type
+  // If the expression is type-consistent, then one of those counts
+  // will be zero
+//  printf("ya entre \n");
+  int intSubTreeNodeCount = computeSubTreeNodeTypeCountFunc(INTEGER_NUMBER_VALUE, exprNode, name);
+  int doubleSubTreeNodeCount = computeSubTreeNodeTypeCountFunc(FLOATING_POINT_NUMBER_VALUE, exprNode, name);
+
+  // printTree(exprNode);
+  // printf("intSubTreeNodeCount: %d; doubleSubTreeNodeCount: %d\n", intSubTreeNodeCount, doubleSubTreeNodeCount);
+
+  if(intSubTreeNodeCount > 0 && doubleSubTreeNodeCount == 0)
+    return INTEGER_NUMBER_VALUE;
+
+  else if(intSubTreeNodeCount == 0 && doubleSubTreeNodeCount > 0)
+    return FLOATING_POINT_NUMBER_VALUE;
+
+  // If the control gets here, there is a mistake: types are inconsistent
+  // Error out and exit!
+  //handleError(ERROR_CODE_DATA_TYPE_MISMATCH, ERROR_MESSAGE_DATA_TYPE_MISMATCH);
+
+  return 0;
+}
+
+int isIntegerExprFunc(ASR * exprNode, char * name){
+  //printf("ya entre \n");
+  return exprIsTypeConsistentFunc(exprNode, name) == INTEGER_NUMBER_VALUE;
+}
+
+int isIntegerExpr(ASR * exprNode){
+//  printf("ya entre \n");
   return exprIsTypeConsistent(exprNode) == INTEGER_NUMBER_VALUE;
+}
+
+int isFloatingPointExprFunc(ASR * exprNode, char * name){
+
+  return exprIsTypeConsistentFunc(exprNode, name) == FLOATING_POINT_NUMBER_VALUE;
 }
 
 int isFloatingPointExpr(ASR * exprNode){
@@ -2465,11 +2598,75 @@ int isFloatingPointExpr(ASR * exprNode){
 }
 
 
+int func_exprIntFunc(ASR * exprIntNode, char * name){
+
+//  printf("volvi a entrar\n");
+  // If we enter an EXPR node, we must at least one term.
+  assert(exprIntNode != NULL);
+
+
+  if(exprIntNode->type == PLUS){
+
+    return func_exprIntFunc(exprIntNode->arrPtr[0], name)
+      + func_exprIntFunc(exprIntNode->arrPtr[1], name);
+  }
+  else if(exprIntNode->type == MINUS){
+
+    return func_exprIntFunc(exprIntNode->arrPtr[0], name)
+      - func_exprIntFunc(exprIntNode->arrPtr[1], name);
+  }
+  else if(exprIntNode->type == STAR){
+
+    return func_exprIntFunc(exprIntNode->arrPtr[0], name)
+      * func_exprIntFunc(exprIntNode->arrPtr[1], name);
+  }
+  else if(exprIntNode->type == FORWARD_SLASH){
+
+    return func_exprIntFunc(exprIntNode->arrPtr[0], name)
+      / func_exprIntFunc(exprIntNode->arrPtr[1], name);
+  }
+
+  assert(exprIntNode->type == INTEGER_NUMBER_VALUE
+    || exprIntNode->type == ID_VALUE
+    || exprIntNode->type == FUNCTION_VALUE);
+
+  int valToReturn = 0;
+
+  if(exprIntNode->type == INTEGER_NUMBER_VALUE){
+
+    valToReturn = exprIntNode->value.intVal;
+  }
+  else if(exprIntNode->type == ID_VALUE){
+
+    struct nodoTSF * currIdFunc = retrieveFromFunSymbolTable(name);
+    struct nodoTS * currNode = retrieveFromTsl(exprIntNode->value.idName, currIdFunc->tsl);
+    assert(currNode->type == INTEGER_NUMBER_VALUE);
+
+    //printSymbolTableNode(currNode);
+    valToReturn = currNode->value.intVal;
+  }
+  /*else if(exprIntNode->type == FUNCTION_VALUE){
+
+    (exprIntNode);
+    // As we know that this is a function, then we know that this symbol must exist in the symbol table
+    // of the main function, so directly call the auxiliary method that looks in that specific symbol table.
+    struct SymbolTableNode* currFunc = auxRetrieveFromSymbolTable(exprIntNode->value.idName, mainFunctionSymbolTableHead);
+    assert(currFunc->returnType == INTEGER_NUMBER_VALUE);
+    // valToReturn = currFunc->value.intVal;
+    valToReturn = ptrFunctionCallStackTop->value.intVal;
+    popFunctionCallToStack();
+  }*/
+
+  return valToReturn;
+}
+
 
 int func_exprInt(ASR * exprIntNode){
 
+
   // If we enter an EXPR node, we must at least one term.
   assert(exprIntNode != NULL);
+
 
   if(exprIntNode->type == PLUS){
 
@@ -2505,7 +2702,9 @@ int func_exprInt(ASR * exprIntNode){
   else if(exprIntNode->type == ID_VALUE){
 
     struct nodoTS * currNode = retrieveFromSymbolTable(exprIntNode->value.idName);
+
     assert(currNode->type == INTEGER_NUMBER_VALUE);
+
     //printSymbolTableNode(currNode);
     valToReturn = currNode->value.intVal;
   }
@@ -2523,6 +2722,68 @@ int func_exprInt(ASR * exprIntNode){
 
   return valToReturn;
 }
+
+double func_exprDoubleFunc(ASR * exprDoubleNode, char * name){
+  // If we enter an EXPR node, we must at least one term.
+  assert(exprDoubleNode != NULL);
+
+  if(exprDoubleNode->type == PLUS){
+
+    return func_exprDoubleFunc(exprDoubleNode->arrPtr[0], name)
+      + func_exprDoubleFunc(exprDoubleNode->arrPtr[1], name);
+  }
+  else if(exprDoubleNode->type == MINUS){
+
+    return func_exprDoubleFunc(exprDoubleNode->arrPtr[0], name)
+      - func_exprDoubleFunc(exprDoubleNode->arrPtr[1], name);
+  }
+  else if(exprDoubleNode->type == STAR){
+
+    return func_exprDoubleFunc(exprDoubleNode->arrPtr[0], name)
+      * func_exprDoubleFunc(exprDoubleNode->arrPtr[1], name);
+  }
+  else if(exprDoubleNode->type == FORWARD_SLASH){
+
+    return func_exprDoubleFunc(exprDoubleNode->arrPtr[0], name)
+      / func_exprDoubleFunc(exprDoubleNode->arrPtr[1], name);
+  }
+
+  assert(exprDoubleNode->type == ID_VALUE
+    || exprDoubleNode-> type == FLOATING_POINT_NUMBER_VALUE
+    || exprDoubleNode-> type == FUNCTION_VALUE);
+
+  // handleError(ERROR_CODE_DATA_TYPE_MISMATCH, ERROR_MESSAGE_DATA_TYPE_MISMATCH);
+
+  double valToReturn = 0;
+
+  if(exprDoubleNode->type == FLOATING_POINT_NUMBER_VALUE){
+    valToReturn = exprDoubleNode->value.doubleVal;
+  }
+  else if(exprDoubleNode->type == ID_VALUE){
+
+    struct nodoTSF * currIdFunc = retrieveFromFunSymbolTable(name);
+    struct nodoTS * currNode = retrieveFromTsl(exprDoubleNode->value.idName, currIdFunc->tsl);
+
+    assert(currNode->type == FLOATING_POINT_NUMBER_VALUE);
+    //printSymbolTableNode(currNode);
+    valToReturn = currNode->value.doubleVal;
+  }
+  /*else if(exprDoubleNode-> type == FUNCTION_VALUE){
+
+    func_func(exprDoubleNode);
+    // As we know that this is a function, then we know that this symbol must exist in the symbol table
+    // of the main function, so directly call the auxiliary method that looks in that specific symbol table.
+    struct SymbolTableNode* currFunc = auxRetrieveFromSymbolTable(exprDoubleNode->value.idName, mainFunctionSymbolTableHead);
+    assert(currFunc->returnType == FLOATING_POINT_NUMBER_VALUE);
+    // valToReturn = currFunc->value.doubleVal;
+    valToReturn = ptrFunctionCallStackTop->value.doubleVal;
+    popFunctionCallToStack();
+  }*/
+
+  return valToReturn;
+}
+
+
 
 double func_exprDouble(ASR * exprDoubleNode){
   // If we enter an EXPR node, we must at least one term.
@@ -2580,6 +2841,73 @@ double func_exprDouble(ASR * exprDoubleNode){
   }*/
 
   return valToReturn;
+}
+
+
+int func_expressionFunc(ASR* nodeExpr){
+
+  // If we enter an EXPRESION node, we must have two 'expr' terms
+  assert(nodeExpr->arrPtr[0] != NULL);
+  assert(nodeExpr->arrPtr[1] != NULL);
+
+  if(isIntegerExprFunc(nodeExpr->arrPtr[0], currentFuncName)){
+
+    // Assert that the second 'expr' term also contains an integer expression
+    assert(isIntegerExpr(nodeExpr->arrPtr[1]));
+    //printNodeType(nodeExpr->type, "hola");
+    int intExpresionLeftSide = func_exprIntFunc(nodeExpr->arrPtr[0], currentFuncName);
+    int intExpresionRightSide = func_exprIntFunc(nodeExpr->arrPtr[1], currentFuncName);
+
+    switch(nodeExpr->type){
+
+      case LT:
+        return intExpresionLeftSide < intExpresionRightSide;
+
+      case GT:
+        return intExpresionLeftSide > intExpresionRightSide;
+
+      case EQ:
+        return intExpresionLeftSide == intExpresionRightSide;
+
+      case LEQ:
+        return intExpresionLeftSide <= intExpresionRightSide;
+
+      case GEQ:
+        return intExpresionLeftSide >= intExpresionRightSide;
+    }
+  }
+  else{
+
+    assert(isFloatingPointExprFunc(nodeExpr->arrPtr[0], currentFuncName));
+
+    // Assert that the second 'expr' term also contains an floating-point expression
+    assert(isFloatingPointExprFunc(nodeExpr->arrPtr[1], currentFuncName));
+
+    double doubleExpresionLeftSide = func_exprDoubleFunc(nodeExpr->arrPtr[0], currentFuncName);
+    int doubleExpresionRightSide = func_exprDoubleFunc(nodeExpr->arrPtr[1], currentFuncName);
+
+    switch(nodeExpr->type){
+
+      case LT:
+        return doubleExpresionLeftSide < doubleExpresionRightSide;
+
+      case GT:
+        return doubleExpresionLeftSide > doubleExpresionRightSide;
+
+      case EQ:
+        return doubleExpresionLeftSide == doubleExpresionRightSide;
+
+      case LEQ:
+        return doubleExpresionLeftSide <= doubleExpresionRightSide;
+
+      case GEQ:
+        return doubleExpresionLeftSide >= doubleExpresionRightSide;
+    }
+  }
+
+  // Control should never reach this part of the function.
+  assert(NULL);
+  return -1;
 }
 
 
@@ -2741,7 +3069,7 @@ int traverseTree(ASR * node, int c){
 
   int count = 0;
 
-  if(c <= 2)
+  if(c <= 1)
     count += (node->type == PARAMETER_VALUE);
 
   for(int i = 0; i < 4; i++){
@@ -2794,11 +3122,11 @@ void func_func(ASR * nodeFunc){
   //PART TO CHECK THAT THE AMOUNT OF PARAMS PASSED ARE THE SAME AS AMOUNT OF PARAMS IN FORMAL FUNCTION
   assert(currFunc != NULL);
   int formalParams = currFunc->numParams;
-  printf("# params: %d\n", formalParams);
+//  printf("# params: %d\n", formalParams);
 
   int amountOfParamsPassed = traverseTree(nodeFunc, 0);
 
-  printf("# params passed: %d\n", amountOfParamsPassed);
+//  printf("# params passed: %d\n", amountOfParamsPassed);
 
   //obtainType(currFunc->tsl);
   assert(formalParams == amountOfParamsPassed);
@@ -2837,11 +3165,11 @@ void func_func(ASR * nodeFunc){
 
    if(currParamValues->type == INTEGER_NUMBER_VALUE){
      currParamValues->value.intVal = func_exprInt(paramsPassed);
-     printf("value of assigned params int %d  %s\n", currParamValues->value.intVal, currParamValues->nombre);
+     //printf("value of assigned params int %d  %s\n", currParamValues->value.intVal, currParamValues->nombre);
    }
    else if(currParamValues->type = FLOATING_POINT_NUMBER_VALUE){
      currParamValues->value.doubleVal = func_exprDouble(paramsPassed);
-    printf("value of assigned params float %lf\n", currParamValues->value.doubleVal);
+  //  printf("value of assigned params float %lf\n", currParamValues->value.doubleVal);
    }
 
     currParamValues = currParamValues->next;
@@ -2849,31 +3177,56 @@ void func_func(ASR * nodeFunc){
 
 
   struct nodoTSF * funcSymbol = retrieveFromFunSymbolTable(nodeFunc->value.idName);
-  printListTsl(funcSymbol->tsl, "prueba");
+  funcRunning = 1;
+  currentFuncName = nodeFunc->value.idName;
+  interpreta(funcSymbol->cuerpo);
 
 
 }
 
 void func_read(ASR * nodeRead){
   assert(nodeRead->arrPtr[0] != NULL);
+  if(funcRunning == 0){
+    struct nodoTS * currNode = retrieveFromSymbolTable(nodeRead->arrPtr[0]->value.idName);
 
-  struct nodoTS * currNode = retrieveFromSymbolTable(nodeRead->arrPtr[0]->value.idName);
+    int valueToSet;
+    double doubleValueToSet;
 
-  int valueToSet;
-  double doubleValueToSet;
+    switch (currNode->type) {
+      case INTEGER_NUMBER_VALUE:
+      valueToSet = readInt();
+      setIntValueToSymbol(currNode->nombre,valueToSet);
+      assert(valueToSet == currNode->value.intVal);
 
-  switch (currNode->type) {
-    case INTEGER_NUMBER_VALUE:
-    valueToSet = readInt();
-    setIntValueToSymbol(currNode->nombre,valueToSet);
-    assert(valueToSet == currNode->value.intVal);
+      break;
+      case FLOATING_POINT_NUMBER_VALUE:
+      doubleValueToSet = readDouble();
+      setDoubleValueToSymbol(currNode->nombre, doubleValueToSet);
+      assert(doubleValueToSet == currNode->value.doubleVal);
+      break;
+    }
+  } else if(funcRunning == 1){
 
-    break;
-    case FLOATING_POINT_NUMBER_VALUE:
-    doubleValueToSet = readDouble();
-    setDoubleValueToSymbol(currNode->nombre, doubleValueToSet);
-    assert(doubleValueToSet == currNode->value.doubleVal);
-    break;
+    struct nodoTSF * currIdFunc = retrieveFromFunSymbolTable(currentFuncName);
+    struct nodoTS * currNode = retrieveFromTsl(nodeRead->arrPtr[0]->value.idName, currIdFunc->tsl);
+
+    int valueToSet;
+    double doubleValueToSet;
+
+    switch (currNode->type) {
+      case INTEGER_NUMBER_VALUE:
+      valueToSet = readInt();
+      setIntValueToSymbolFunc(currNode->nombre,valueToSet, currentFuncName);
+      assert(valueToSet == currNode->value.intVal);
+
+      break;
+      case FLOATING_POINT_NUMBER_VALUE:
+      doubleValueToSet = readDouble();
+      setDoubleValueToSymbolFunc(currNode->nombre, doubleValueToSet, currentFuncName);
+      assert(doubleValueToSet == currNode->value.doubleVal);
+      break;
+    }
+
   }
 
 }
@@ -2890,7 +3243,7 @@ void func_print(ASR * printNode){
   } else if(printNode->arrPtr[0]->parentNodeType == EXPR
     || printNode->arrPtr[0]->parentNodeType == TERM
     || printNode->arrPtr[0]->parentNodeType == FACTOR){
-      printf("yupiyupiyupo\n");
+      //printf("yupiyupiyupo\n");
 
     if(printNode->arrPtr[0]->type == FUNCTION_VALUE){
 
@@ -2916,16 +3269,30 @@ void func_print(ASR * printNode){
       popFunctionCallToStack();
     }*/
     else{
-      printf("yihayhayoa\n");
-      printf("%d\n", printNode->arrPtr[0]->value.intVal);
-      if(isIntegerExpr(printNode->arrPtr[0])){
 
-        printf("%d\n", func_exprInt(printNode->arrPtr[0]));
-      }
-      else{
+      if(funcRunning == 0){
+        if(isIntegerExpr(printNode->arrPtr[0])){
 
-        assert(isFloatingPointExpr(printNode->arrPtr[0]));
-        printf("%lf\n", func_exprDouble(printNode->arrPtr[0]));
+          printf("%d\n", func_exprInt(printNode->arrPtr[0]));
+        }
+        else{
+
+          assert(isFloatingPointExpr(printNode->arrPtr[0]));
+          printf("%lf\n", func_exprDouble(printNode->arrPtr[0]));
+        }
+      } else if(funcRunning == 1){
+
+        if(isIntegerExprFunc(printNode->arrPtr[0], currentFuncName)){
+
+          printf("%d\n", func_exprIntFunc(printNode->arrPtr[0], currentFuncName));
+        }
+        else{
+
+          assert(isFloatingPointExprFunc(printNode->arrPtr[0], currentFuncName));
+          printf("%lf\n", func_exprDoubleFunc(printNode->arrPtr[0], currentFuncName));
+        }
+
+        //funcRunning = 0;
       }
     }
   }
@@ -2937,31 +3304,61 @@ void func_print(ASR * printNode){
     // id and the desired value
     assert(setNode->arrPtr[0] != NULL);
     assert(setNode->arrPtr[1] != NULL);
+    if(funcRunning == 0){
+      // printf("symbol to retrieve: %s\n", setNode->arrPtr[0]->value.idName);
+      struct nodoTS * currNode = retrieveFromSymbolTable(setNode->arrPtr[0]->value.idName);
 
-    // printf("symbol to retrieve: %s\n", setNode->arrPtr[0]->value.idName);
-    struct nodoTS * currNode = retrieveFromSymbolTable(setNode->arrPtr[0]->value.idName);
+      assert(currNode != NULL);
 
-    assert(currNode != NULL);
+      int exprValueToSet;
+      double exprDoubleValueToSet;
 
-    int exprValueToSet;
-    double exprDoubleValueToSet;
+      switch(currNode->type){
 
-    switch(currNode->type){
-
-      case INTEGER_NUMBER_VALUE:
+        case INTEGER_NUMBER_VALUE:
         exprValueToSet = func_exprInt(setNode->arrPtr[1]);
         setIntValueToSymbol(currNode->nombre, exprValueToSet);
         //printSymbolTableNode(currNode);
         assert(exprValueToSet == currNode->value.intVal);
         break;
 
-      case FLOATING_POINT_NUMBER_VALUE:
+        case FLOATING_POINT_NUMBER_VALUE:
         exprDoubleValueToSet = func_exprDouble(setNode->arrPtr[1]);
         setDoubleValueToSymbol(currNode->nombre, exprDoubleValueToSet);
         //printSymbolTableNode(currNode);
         assert(exprDoubleValueToSet == currNode->value.doubleVal);
         break;
 
+      }
+    } else if(funcRunning == 1){
+
+      struct nodoTSF * currIdFunc = retrieveFromFunSymbolTable(currentFuncName);
+      struct nodoTS * currNode = retrieveFromTsl(setNode->arrPtr[0]->value.idName, currIdFunc->tsl);
+
+    //  printf("current sybbol type %d\n", currNode->type);
+
+      assert(currNode != NULL);
+
+      int exprValueToSet;
+      double exprDoubleValueToSet;
+
+      switch(currNode->type){
+
+        case INTEGER_NUMBER_VALUE:
+        exprValueToSet = func_exprIntFunc(setNode->arrPtr[1], currentFuncName);
+        setIntValueToSymbolFunc(currNode->nombre, exprValueToSet, currentFuncName);
+        //printSymbolTableNode(currNode);
+        assert(exprValueToSet == currNode->value.intVal);
+        break;
+
+        case FLOATING_POINT_NUMBER_VALUE:
+        exprDoubleValueToSet = func_exprDoubleFunc(setNode->arrPtr[1], currentFuncName);
+        setDoubleValueToSymbolFunc(currNode->nombre, exprDoubleValueToSet, currentFuncName);
+        //printSymbolTableNode(currNode);
+        assert(exprDoubleValueToSet == currNode->value.doubleVal);
+        break;
+
+      }
     }
   }
 
@@ -2971,31 +3368,50 @@ void func_print(ASR * printNode){
   void func_if(ASR * nodeIf){
 
     assert(nodeIf->arrPtr[0] != NULL);
-
+    if(funcRunning == 0){
     if(func_expression(nodeIf->arrPtr[0])){
       if(nodeIf->arrPtr[1] != NULL){
         interpreta(nodeIf->arrPtr[1]);
       }
     }
+  } else if(funcRunning == 1){
+    if(func_expressionFunc(nodeIf->arrPtr[0])){
+      if(nodeIf->arrPtr[1] != NULL){
+        interpreta(nodeIf->arrPtr[1]);
+      }
+    }
+  }
   }
 
   void func_ifElse(ASR * nodeIfElse){
 
     assert(nodeIfElse->arrPtr[0] != NULL);
-
+    if(funcRunning == 0){
     if(func_expression(nodeIfElse->arrPtr[0])){
       interpreta(nodeIfElse->arrPtr[1]);
     } else {
       interpreta(nodeIfElse->arrPtr[2]);
     }
+  } else if(funcRunning == 1){
+    if(func_expressionFunc(nodeIfElse->arrPtr[0])){
+      interpreta(nodeIfElse->arrPtr[1]);
+    } else {
+      interpreta(nodeIfElse->arrPtr[2]);
+    }
+  }
   }
 
   void func_while(ASR * nodeWhile){
     assert(nodeWhile->arrPtr[0] != NULL);
-
+    if(funcRunning == 0){
     while(func_expression(nodeWhile->arrPtr[0])){
       interpreta(nodeWhile->arrPtr[1]);
     }
+  } else if(funcRunning == 1){
+    while(func_expressionFunc(nodeWhile->arrPtr[0])){
+      interpreta(nodeWhile->arrPtr[1]);
+    }
+  }
   }
 
   void func_for(ASR * nodeFor){
@@ -3004,22 +3420,35 @@ void func_print(ASR * printNode){
     assert(nodeFor->arrPtr[1] != NULL);
     assert(nodeFor->arrPtr[2] != NULL);
 
+    if(funcRunning == 0){
     func_assign(nodeFor->arrPtr[0]);
 
     while(func_expression(nodeFor->arrPtr[1])){
       interpreta(nodeFor->arrPtr[3]);
       func_assign(nodeFor->arrPtr[2]);
     }
+  } else if(funcRunning == 1){
+    func_assign(nodeFor->arrPtr[0]);
+    while(func_expressionFunc(nodeFor->arrPtr[1])){
+      interpreta(nodeFor->arrPtr[3]);
+      func_assign(nodeFor->arrPtr[2]);
+    }
+  }
   }
  //preguntarle al profe a que se refefiere con el REPEAT
 
   void func_repeat(ASR * nodeRepeat){
     //assert(nodeRepeat->arrPtr[0] != NULL);
     assert(nodeRepeat->arrPtr[1] != NULL);
-
+    if(funcRunning == 0){
     do {
       interpreta(nodeRepeat->arrPtr[0]);
     } while(func_expression(nodeRepeat->arrPtr[1]));
+  } else if(funcRunning == 1){
+    do {
+      interpreta(nodeRepeat->arrPtr[0]);
+    } while(func_expressionFunc(nodeRepeat->arrPtr[1]));
+  }
   }
 
  void interpreta(ASR * node){
@@ -3030,36 +3459,36 @@ void func_print(ASR * printNode){
    return;
 
    switch (node->type) {
-     case PROGRAM:
+     case PROGRAM: // CHECK
      break;
 
-     case PYC:
+     case PYC: // CHECK
      break;
 
-     case PYC_S:
+     case PYC_S: // CHECK
      break;
 
-     case PRINT:
+     case PRINT: // CHECK
      func_print(node);
      break;
 
-     case READ:
+     case READ: // CHECK
      func_read(node);
      break;
 
-     case SET:
+     case SET: // CHECK
      func_assign(node);
      break;
 
-     case IF:
+     case IF: // CHECK
      func_if(node);
      break;
 
-     case IFELSE:
+     case IFELSE: // CHECK
      func_ifElse(node);
      break;
 
-     case WHILE:
+     case WHILE: // CHECK
      func_while(node);
      break;
 

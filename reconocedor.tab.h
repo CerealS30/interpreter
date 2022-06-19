@@ -94,7 +94,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 176 "reconocedor.y"
+#line 178 "reconocedor.y"
 
    struct nodoTS * val;
    char * nombre;

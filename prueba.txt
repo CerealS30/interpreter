@@ -2,13 +2,18 @@ program bobo
 
 var t:int
 
-fun add(tres:int , cuatro:int) : int
+
+fun add(cinco:int, seis:int): int
+
 begin
-print tres
+repeat
+  begin
+    print cinco;
+    cinco<-cinco+2
+  end
+until (cinco<10)
 end
 
 begin
-print 5;
-print add(1,2)
-
+print add(0,1)
 end
