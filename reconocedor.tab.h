@@ -86,7 +86,8 @@ extern int yydebug;
     RES_FUN = 292,
     COMMA = 293,
     RES_RETURN = 294,
-    ID = 295
+    RES_MINUS = 295,
+    ID = 296
   };
 #endif
 
@@ -94,16 +95,16 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 182 "reconocedor.y"
+#line 179 "reconocedor.y"
 
-   struct nodoTS * val;
-   char * nombre;
-   int entero;  // Para las constantes num�ricas
-   double doubleVal;
-   union valor *f;
-   struct asr * arbol;  // Para los apuntadores a �rbol sint�ctico
+    struct nodoTS * val;
+    char * nombre;
+    int entero;
+    double doubleVal;
+    union valor *f;
+    struct asr * arbol;
 
-#line 107 "reconocedor.tab.h"
+#line 108 "reconocedor.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

@@ -37,6 +37,7 @@ program {return RES_PROGRAM;}
 ":" {return COLON;}
 ";" {return SEMI;}
 "," {return COMMA;}
+"~" {return RES_MINUS;}
 "=" {return EQUAL;}
 "<" {return LESSER;}
 ">" {return GREATER;}

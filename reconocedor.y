@@ -8,193 +8,187 @@
    gcc lex.yy.c reconocedor.tab.c -lfl
    ./a.out
 
-   Autor: Alberto v Ros */
+   Autores:
+   Miguel Ángel Herrera Islas - A01732934
+   Andrés Guevara Mastretta - A01733186
+ */
 
 %{
-#include<stdlib.h>
-#include<stdio.h>
-#include <assert.h>
+     #include<stdlib.h>
+     #include<stdio.h>
+     #include <assert.h>
+     #include <string.h>
 
-#include <string.h>
+     #define NOTHING -99999
+     double doubleVal;
+     int numParam = 0;
+     int funcRunning = 0;
+     char * currentFuncName;
 
+     enum SyntaxTreeNodeType {
+         PROGRAM,
+         PYC,
+         PYC_S,
+         STMT,
+         ASSIGN_STMT,
+         IF_STMT,
+         ITER_STMT,
+         CMP_STMT,
+         SET,
+         TO,
+         EXPR,
+         TERM,
+         FACTOR,
+         READ,
+         PRINT,
+         REPEAT,
+         IF,
+         EXPRESION,
+         IFELSE,
+         WHILE,
+         FOR,
+         STEP,
+         DO,
+         STMT_LST,
+         PLUS,
+         MINUS,
+         STAR,
+         FORWARD_SLASH,
+         LT,
+         GT,
+         EQ,
+         LEQ,
+         GEQ,
+         INTEGER_NUMBER_VALUE,
+         FLOATING_POINT_NUMBER_VALUE,
+         ID_VALUE,
+         FUNCTION_VALUE,
+         PARAMETER_VALUE,
+         EXPR_LST,
+         RETURN
+     };
 
-#define NOTHING -99999
-
-double doubleVal;
-
-int numParam = 0;
-int funcRunning = 0;
-char * currentFuncName;
-
- enum SyntaxTreeNodeType {
-  PROGRAM,
-  PYC,
-  PYC_S,
-  STMT,
-  ASSIGN_STMT,
-  IF_STMT,
-  ITER_STMT,
-  CMP_STMT,
-  SET,
-  TO,
-  EXPR,
-  TERM,
-  FACTOR,
-  READ,
-  PRINT,
-  REPEAT,
-  IF,
-  EXPRESION,
-  IFELSE,
-  WHILE,
-  FOR,
-  STEP,
-  DO,
-  STMT_LST,
-  PLUS,
-  MINUS,
-  STAR,
-  FORWARD_SLASH,
-  LT,
-  GT,
-  EQ,
-  LEQ,
-  GEQ,
-  INTEGER_NUMBER_VALUE,
-  FLOATING_POINT_NUMBER_VALUE,
-  ID_VALUE,
-  FUNCTION_VALUE,
-  PARAMETER_VALUE,
-  EXPR_LST,
-  RETURN
-};
-
-char* SyntaxTreeNodeTypeName[] = {
-  "PROGRAM",
-  "PYC",
-  "PYC_S",
-  "STMT",
-  "ASSIGN_STMT",
-  "IF_STMT",
-  "ITER_STMT",
-  "CMP_STMT",
-  "SET",
-  "TO",
-  "EXPR",
-  "TERM",
-  "FACTOR",
-  "READ",
-  "PRINT",
-  "REPEAT",
-  "IF",
-  "EXPRESION",
-  "IFELSE",
-  "WHILE",
-  "FOR",
-  "STEP",
-  "DO",
-  "STMT_LST",
-  "PLUS",
-  "MINUS",
-  "STAR",
-  "FORWARD_SLASH",
-  "LT",
-  "GT",
-  "EQ",
-  "LEQ",
-  "GEQ",
-  "INTEGER_NUMBER_VALUE",
-  "FLOATING_POINT_NUMBER_VALUE",
-  "ID_VALUE",
-  "FUNCTION_VALUE",
-  "PARAMETER_VALUE",
-  "EXPR_LST",
-  "RETURN"
-};
+     char* SyntaxTreeNodeTypeName[] = {
+         "PROGRAM",
+         "PYC",
+         "PYC_S",
+         "STMT",
+         "ASSIGN_STMT",
+         "IF_STMT",
+         "ITER_STMT",
+         "CMP_STMT",
+         "SET",
+         "TO",
+         "EXPR",
+         "TERM",
+         "FACTOR",
+         "READ",
+         "PRINT",
+         "REPEAT",
+         "IF",
+         "EXPRESION",
+         "IFELSE",
+         "WHILE",
+         "FOR",
+         "STEP",
+         "DO",
+         "STMT_LST",
+         "PLUS",
+         "MINUS",
+         "STAR",
+         "FORWARD_SLASH",
+         "LT",
+         "GT",
+         "EQ",
+         "LEQ",
+         "GEQ",
+         "INTEGER_NUMBER_VALUE",
+         "FLOATING_POINT_NUMBER_VALUE",
+         "ID_VALUE",
+         "FUNCTION_VALUE",
+         "PARAMETER_VALUE",
+         "EXPR_LST",
+         "RETURN"
+     };
 
 
-struct nodoTS {
-    char * nombre;
-    int type;
-    union {
-      int intVal;
-      double doubleVal;
-    }value;
-    struct nodoTS * next;
-};
+     struct nodoTS {
+         char * nombre;
+         int type;
+         union {
+             int intVal;
+             double doubleVal;
+         }
+         value;
+         struct nodoTS * next;
+     };
 
-// Definimos una estructura para hacer el árbol sintáctico reducIDo.
-typedef struct asr ASR;
-struct asr {
-  int type;
-  int parentNodeType;
-  ASR *arrPtr[4];
-  union {
-    int intVal; /* Integer value */
-    double doubleVal; /* Floating-point value */
-    char *idName; /* Identifier name */
-  } value;
-  ASR *next;
-};
+     // Definimos una estructura para hacer el árbol sintáctico reducIDo.
+     typedef struct asr ASR;
+     struct asr {
+         int type;
+         int parentNodeType;
+         ASR *arrPtr[4];
+         union {
+             int intVal; /* Integer value */
+             double doubleVal; /* Floating-point value */
+             char *idName; /* Identifier name */
+         }
+         value;
+         ASR *next;
+     };
 
-struct nodoTSF {
-  char * nombre;
-  int returnType;
-  int numParams;
-  struct nodoTS * tsl;
-  ASR * cuerpo;
-  union {
-    int intVal;
-    double doubleVal;
-  } value;
-  struct nodoTSF * next;
-};
-
-
-
-
-extern int yylex();
-int yyerror(char const * s);
-ASR * nuevoNodo(int, double, char*, int, int, ASR*,ASR*,ASR*,ASR*,ASR*);
-extern char * yytext;
-extern FILE *yyin;
-//void findID(char * id);
-struct nodoTS * insertID(char* id, int tipo);
-void insertFunc(char*, int, int, struct nodoTS*, ASR*);
-void insertIDFunc(struct nodoTS**, char*, int);
-void printList();
-void printListTsl(struct nodoTS * ptr, char * nombre);
-void printListTsf();
-void printTree(ASR * raiz);
-void preTreePrinting(ASR * node, char * id);
-struct nodoTSF * retrieveFromFunSymbolTable(char * id);
-void interpreta(ASR * raiz);
+     struct nodoTSF {
+         char * nombre;
+         int returnType;
+         int numParams;
+         struct nodoTS * tsl;
+         ASR * cuerpo;
+         union {
+             int intVal;
+             double doubleVal;
+         }
+         value;
+         struct nodoTSF * next;
+     };
 
 
+     extern int yylex();
+     int yyerror(char const * s);
+     ASR * nuevoNodo(int, double, char*, int, int, ASR*,ASR*,ASR*,ASR*,ASR*);
+     extern char * yytext;
+     extern FILE *yyin;
+     //void findID(char * id);
+     struct nodoTS * insertID(char* id, int tipo);
+     void insertFunc(char*, int, int, struct nodoTS*, ASR*);
+     void insertIDFunc(struct nodoTS**, char*, int);
+     void printList();
+     void printListTsl(struct nodoTS * ptr, char * nombre);
+     void printListTsf();
+     void printTree(ASR * raiz);
+     void preTreePrinting(ASR * node, char * id);
+     struct nodoTSF * retrieveFromFunSymbolTable(char * id);
+     void interpreta(ASR * raiz);
 
 
-struct nodoTS * head;
-struct nodoTS * tslHead;
-struct nodoTSF * functionSymbolTableHead;
-
+     struct nodoTS * head;
+     struct nodoTS * tslHead;
+     struct nodoTSF * functionSymbolTableHead;
 %}
 
 %union {
-   struct nodoTS * val;
-   char * nombre;
-   int entero;  // Para las constantes num�ricas
-   double doubleVal;
-   union valor *f;
-   struct asr * arbol;  // Para los apuntadores a �rbol sint�ctico
+    struct nodoTS * val;
+    char * nombre;
+    int entero;
+    double doubleVal;
+    union valor *f;
+    struct asr * arbol;
 }
 
-/* Los elementos terminales de la gram�tica. La declaraci�n de abajo se
-   convierte en definici�n de constantes en el archivo calculadora.tab.h
-   que hay que incluir en el archivo de flex. */
 
 
 
-%token SUMA RESTA MULT DIV PARI PARF BGN END COLON SEMI ASSIGN EQUAL LESSER GREATER LEQUAL GEQUAL LARROW RES_FOR RES_DO RES_WHILE RES_IF THEN ELSE INT FLOAT RES_REPEAT UNTIL RES_STEP RES_PROGRAM VAR RES_READ RES_PRINT INTEGER FLOATING RES_FUN COMMA RES_RETURN
+%token SUMA RESTA MULT DIV PARI PARF BGN END COLON SEMI ASSIGN EQUAL LESSER GREATER LEQUAL GEQUAL LARROW RES_FOR RES_DO RES_WHILE RES_IF THEN ELSE INT FLOAT RES_REPEAT UNTIL RES_STEP RES_PROGRAM VAR RES_READ RES_PRINT INTEGER FLOATING RES_FUN COMMA RES_RETURN RES_MINUS
 %token <nombre> ID
 %type <entero> type
 %type <arbol> prog stmt opt_stmts stmt_lst expr term factor expression expr_lst opt_exprs fun_decl SUMA RESTA MULT DIV PARI PARF BGN END COLON SEMI ASSIGN EQUAL LESSER GREATER LEQUAL GEQUAL LARROW RES_FOR RES_DO RES_WHILE RES_IF THEN ELSE INT FLOAT RES_REPEAT UNTIL RES_STEP RES_PROGRAM VAR RES_READ RES_PRINT
@@ -203,8 +197,8 @@ struct nodoTSF * functionSymbolTableHead;
 
 %precedence THEN
 %precedence ELSE
-
 %%
+
 
 prog : RES_PROGRAM ID opt_decls opt_fun_decls BGN opt_stmts END  {
 						   ASR *nodoRoot;
@@ -214,8 +208,6 @@ prog : RES_PROGRAM ID opt_decls opt_fun_decls BGN opt_stmts END  {
 						   printList();
 						    printf("########## ARBOL SINTACTICO REDUCIDO ############\n\n");
 						   preTreePrinting(nodoRoot, "main");
-                //printf("########## TABLA DE SIMBOLOS DE FUNCIONES ############\n\n");
-                //printListTsl();
                 printf("########## TABLA DE FUNCIONES ############\n\n");
                 printListTsf();
                 printf("########## START OF PROGRAM OUTPUT ############\n\n");
@@ -352,11 +344,12 @@ term : term MULT factor {$$ = nuevoNodo(NOTHING, NOTHING, NULL, STAR, EXPR, $1, 
      | factor {$$ = $1;}
 ;
 
-// modificada para diferenciar entre enteros y flotantes
 factor : PARI expr PARF {$$ = $2;}
        | ID   {$$ = nuevoNodo(NOTHING, NOTHING, (char*)$1, ID_VALUE, FACTOR, NULL, NULL, NULL, NULL, NULL);}
        | INT  {$$ = nuevoNodo((int)$1, NOTHING, NULL, INTEGER_NUMBER_VALUE, TERM, NULL, NULL, NULL, NULL, NULL);}
+       | RES_MINUS INT {$$ = nuevoNodo((int)$2*-1, NOTHING, NULL, INTEGER_NUMBER_VALUE, TERM, NULL, NULL, NULL, NULL, NULL);}
        | FLOAT {$$ = nuevoNodo(NOTHING, doubleVal, NULL, FLOATING_POINT_NUMBER_VALUE, TERM, NULL, NULL, NULL, NULL, NULL);}
+       | RES_MINUS FLOAT  {$$ = nuevoNodo(NOTHING, doubleVal*-1.0, NULL, FLOATING_POINT_NUMBER_VALUE, TERM, NULL, NULL, NULL, NULL, NULL);}
        | ID PARI opt_exprs PARF {$$ = nuevoNodo(NOTHING, NOTHING, (char *)$1, FUNCTION_VALUE, TERM, $3, NULL, NULL, NULL, NULL);}
 ;
 opt_exprs : expr_lst
@@ -386,1429 +379,1086 @@ expression : expr LESSER expr {$$ = nuevoNodo(NOTHING, NOTHING, NULL, LT, EXPRES
 ;
 
 
-
 %%
 
 
-
 int yyerror(char const * s) {
-  fprintf(stderr, "%s,%s\n", s,yytext);
+    fprintf(stderr, "%s,%s\n", s,yytext);
 }
 
 void main(int argc, char * argv[]) {
+    if(argc < 2) {
+        printf("Error, falta nombre de archivo\n");
+        exit(1);
+    }
 
-  if(argc < 2) {
-   printf("Error, falta nombre de archivo\n");
-   exit(1);
-  }
+    yyin = fopen(argv[1], "r");
 
-  yyin = fopen(argv[1], "r");
+    if(yyin == NULL) {
+        printf("Error, archivo no existe\n");
+        exit(1);
+    }
 
-  if(yyin == NULL) {
-    printf("Error, archivo no existe\n");
-    exit(1);
-  }
-
-  yyparse();
+    yyparse();
 }
 
-/* La funci�n nuevoNodo crea un nuevo nodo para un �rbol sint�ctico reducIDo.
-   Los par�metros son el tipo de nodo (operaci�n u operando), el valor que
-   representa qu� operando se est� usando o el valor del n�mero en cuesti�n y
-   los apuntadores a los sub�rboles correspondientes.
-*/
-
-
-
-
 void printList() {
-	 struct nodoTS * ptr = head;
+    struct nodoTS * ptr = head;
+    printf("\n[ ");
 
-	printf("\n[ ");
+    while(ptr != NULL) {
+        if(ptr->type == INTEGER_NUMBER_VALUE) printf("(%s, int, %d) ",ptr->nombre, ptr->value.intVal);
+        else if(ptr->type == FLOATING_POINT_NUMBER_VALUE) printf("(%s, float, %.2f) ", ptr->nombre, ptr->value.doubleVal);
+        ptr = ptr->next;
+    }
 
-	while(ptr != NULL) {
-	 if(ptr->type == INTEGER_NUMBER_VALUE) printf("(%s, int, %d) ",ptr->nombre, ptr->value.intVal);
-	 else if(ptr->type == FLOATING_POINT_NUMBER_VALUE) printf("(%s, float, %.2f) ", ptr->nombre, ptr->value.doubleVal);
-	 ptr = ptr->next;
-	}
-
-	printf(" ] \n\n");
-
+    printf(" ] \n\n");
 }
 
 void printListTsl(struct nodoTS * ptr, char * nombre) {
-  struct nodoTS * pointer = ptr;
-  printf("#################### TABLA DE SIMBOLOS DE LA FUNCION %s #########################\n\n", nombre);
-  printf("\n[ ");
+    struct nodoTS * pointer = ptr;
+    printf("#################### TABLA DE SIMBOLOS DE LA FUNCION %s #########################\n\n", nombre);
+    printf("\n[ ");
 
-	while(ptr != NULL) {
-	 if(ptr->type == INTEGER_NUMBER_VALUE) printf("(%s, int, %d) ",ptr->nombre, ptr->value.intVal);
-	 else if(ptr->type == FLOATING_POINT_NUMBER_VALUE) printf("(%s, float, %.2f) ", ptr->nombre, ptr->value.doubleVal);
-	 ptr = ptr->next;
-	}
+    while(ptr != NULL) {
+        if(ptr->type == INTEGER_NUMBER_VALUE) printf("(%s, int, %d) ",ptr->nombre, ptr->value.intVal);
+        else if(ptr->type == FLOATING_POINT_NUMBER_VALUE) printf("(%s, float, %.2f) ", ptr->nombre, ptr->value.doubleVal);
+        ptr = ptr->next;
+    }
 
-	printf(" ] \n\n");
-  printf("#################### FINAL DE LA TABLA DE SIMBOLO DE LA FUNCION %s  #########################\n\n", nombre);
+    printf(" ] \n\n");
+    printf("#################### FINAL DE LA TABLA DE SIMBOLO DE LA FUNCION %s  #########################\n\n", nombre);
 }
 
 void printListTsf() {
+    struct nodoTSF * ptr = functionSymbolTableHead;
 
-  struct nodoTSF * ptr = functionSymbolTableHead;
-
-
-
-	while(ptr != NULL) {
-    printf("\n[ ");
-	 if(ptr->returnType == INTEGER_NUMBER_VALUE) printf("(%s, # params: %d, return type: int) ",ptr->nombre, ptr->numParams);
-	 else if(ptr->returnType == FLOATING_POINT_NUMBER_VALUE) printf("(%s, # params: %d, return type: float) ", ptr->nombre, ptr->numParams);
-   printf(" ] \n\n");
-   printListTsl(ptr->tsl, ptr->nombre);
-   preTreePrinting(ptr->cuerpo, ptr->nombre);
-	 ptr = ptr->next;
-	}
-
+    while(ptr != NULL) {
+        printf("\n[ ");
+        if(ptr->returnType == INTEGER_NUMBER_VALUE) printf("(%s, # params: %d, return type: int) ",ptr->nombre, ptr->numParams);
+        else if(ptr->returnType == FLOATING_POINT_NUMBER_VALUE) printf("(%s, # params: %d, return type: float) ", ptr->nombre, ptr->numParams);
+        printf(" ] \n\n");
+        printListTsl(ptr->tsl, ptr->nombre);
+        preTreePrinting(ptr->cuerpo, ptr->nombre);
+        ptr = ptr->next;
+    }
 
 }
 
 ASR * nuevoNodo(int iVal, double dVal, char* idName, int type, int parentNodeType, ASR * ptr1, ASR * ptr2, ASR * ptr3, ASR * ptr4, ASR * nextNode) {
+    ASR * newNodePtr = (ASR *) malloc(sizeof(ASR));
+    newNodePtr->type = type;
+    newNodePtr->parentNodeType = parentNodeType;
 
-   ASR * newNodePtr = (ASR *) malloc(sizeof(ASR));
-   newNodePtr->type = type;
-   newNodePtr->parentNodeType = parentNodeType;
+    newNodePtr->arrPtr[0] = ptr1;
+    newNodePtr->arrPtr[1] = ptr2;
+    newNodePtr->arrPtr[2] = ptr3;
+    newNodePtr->arrPtr[3] = ptr4;
 
-   newNodePtr->arrPtr[0] = ptr1;
-   newNodePtr->arrPtr[1] = ptr2;
-   newNodePtr->arrPtr[2] = ptr3;
-   newNodePtr->arrPtr[3] = ptr4;
+    newNodePtr->next = nextNode;
 
-   newNodePtr->next = nextNode;
+    if(type == INTEGER_NUMBER_VALUE) {
+        newNodePtr->value.intVal = iVal;
+    }
+    else if(type == FLOATING_POINT_NUMBER_VALUE) {
 
-   //printf("%p\n",ptr1);
-   // Assign the values. They could be equal to NOTHING.
-   if(type == INTEGER_NUMBER_VALUE){
+        newNodePtr->value.doubleVal = dVal;
+    }
+    else if(type == ID_VALUE) {
+        newNodePtr->value.idName = (char *) malloc(strlen(idName) + 1);
+        strcpy (newNodePtr->value.idName, idName);
+    }
+    else if(type == FUNCTION_VALUE) {
+        newNodePtr->value.idName = (char *) malloc(strlen(idName) + 1);
+        strcpy (newNodePtr->value.idName, idName);
+    }
 
-     newNodePtr->value.intVal = iVal;
-   }
-   else if(type == FLOATING_POINT_NUMBER_VALUE){
-
-     newNodePtr->value.doubleVal = dVal;
-   }
-   else if(type == ID_VALUE){
-
-     // Malloc for the identifier's name
-     newNodePtr->value.idName = (char *) malloc(strlen(idName) + 1);
-     strcpy (newNodePtr->value.idName, idName);
-   }
-   else if(type == FUNCTION_VALUE){
-
-     newNodePtr->value.idName = (char *) malloc(strlen(idName) + 1);
-     strcpy (newNodePtr->value.idName, idName);
-   }
-   return newNodePtr;
+    return newNodePtr;
 }
 
 struct nodoTS * insertID(char * id, int tipo) {
+    struct nodoTS * link = (struct nodoTS *) malloc(sizeof(struct nodoTS));
 
-	struct nodoTS * link = (struct nodoTS *) malloc(sizeof(struct nodoTS));
-
-	link->type = tipo;
-	link->value.intVal = 0;
-	link->nombre = id;
-	link->next = head;
-	head = link;
-
+    link->type = tipo;
+    link->value.intVal = 0;
+    link->nombre = id;
+    link->next = head;
+    head = link;
 }
 
-void insertFunc(char * id, int returnType, int numParams, struct nodoTS * tsl, ASR * cuerpo){
-  struct nodoTSF * newFunc = (struct nodoTSF *) malloc(sizeof(struct nodoTSF));
+void insertFunc(char * id, int returnType, int numParams, struct nodoTS * tsl, ASR * cuerpo) {
+    struct nodoTSF * newFunc = (struct nodoTSF *) malloc(sizeof(struct nodoTSF));
 
-  newFunc->nombre = id;
-  newFunc->returnType = returnType;
-  newFunc->numParams = numParams;
-  newFunc->tsl = tsl;
-  newFunc->cuerpo = cuerpo;
+    newFunc->nombre = id;
+    newFunc->returnType = returnType;
+    newFunc->numParams = numParams;
+    newFunc->tsl = tsl;
+    newFunc->cuerpo = cuerpo;
 
-  newFunc->next = functionSymbolTableHead;
-  functionSymbolTableHead = newFunc;
-
+    newFunc->next = functionSymbolTableHead;
+    functionSymbolTableHead = newFunc;
 }
 
-void insertIDFunc(struct nodoTS** tslHead, char * id, int tipo){
-  struct nodoTS * newNode = (struct nodoTS *) malloc(sizeof(struct nodoTS));
+void insertIDFunc(struct nodoTS** tslHead, char * id, int tipo) {
+    struct nodoTS * newNode = (struct nodoTS *) malloc(sizeof(struct nodoTS));
 
-  newNode->type = tipo;
-  newNode->value.intVal = 0;
-  newNode->nombre = id;
-  newNode->next = (struct nodoTS*)(*tslHead);
-  *tslHead = newNode;
-
+    newNode->type = tipo;
+    newNode->value.intVal = 0;
+    newNode->nombre = id;
+    newNode->next = (struct nodoTS*)(*tslHead);
+    *tslHead = newNode;
 }
 
-struct nodoTSF* retrieveFromFunSymbolTable(char * nombre){
-  struct nodoTSF *currPtr = functionSymbolTableHead;
+struct nodoTSF* retrieveFromFunSymbolTable(char * nombre) {
+    struct nodoTSF *currPtr = functionSymbolTableHead;
 
-  while(currPtr != NULL){
-    assert(currPtr->nombre);
-
-    if(strcmp(currPtr->nombre, nombre) == 0)
-      return currPtr;
-
-      currPtr = currPtr->next;
-  }
-
-  return NULL;
-}
-
-struct nodoTS* auxRetrieveFromSymbolTable(char const *symbolName, struct nodoTS* symbolTableHead){
-
-  struct nodoTS *currPtr = symbolTableHead;
-
-  // Traverse the linked list and compare the name of the current symbol
-  // with the name of the symbol that you're looking for.
-  while(currPtr != NULL){
-
-    assert(currPtr->nombre);
-
-    if(strcmp(currPtr->nombre, symbolName) == 0)
-      return currPtr;
-
-    currPtr = currPtr->next;
-  }
-
-  // If the symbol was not found in the function's symbol table, it must be looked for
-  // in the symbol table of the main function.
-  // handleError(ERROR_CODE_SYMBOL_NOT_FOUND, ERROR_MESSAGE_SYMBOL_NOT_FOUND);
-  return NULL;
-}
-
-struct nodoTS * retrieveFromTsl(char * simboloActual, struct nodoTS* headTsl){
-
-  struct nodoTS* currPtr = headTsl;
-
-  while(currPtr != NULL){
-
-    assert(currPtr->nombre);
-
-    if(strcmp(currPtr->nombre, simboloActual) == 0)
-      return currPtr;
-
-    currPtr = currPtr->next;
-  }
-
-  return NULL;
-}
-
-struct nodoTS* retrieveFromSymbolTable(char const *symbolName){
-
-  struct nodoTS *currPtr = NULL;
-
-
-
-  // If a function is being executed but the symbol was not found in the function's
-  // symbol table or if no function is being executed, then look for the symbol in
-  // the main function's symbol table.
-  if(!currPtr)
-    currPtr = auxRetrieveFromSymbolTable(symbolName, head);
-
-
-
-  return currPtr;
-}
-
-void setIntValueToSymbolFunc(char * symbolName, int newIntegerValue, char * name){
-
-  struct nodoTSF * currIdFunc = retrieveFromFunSymbolTable(name);
-  struct nodoTS *symbolPtr = retrieveFromTsl(symbolName, currIdFunc->tsl);
-
-  if(symbolPtr != NULL){
-
-    // Check that the symbol does in fact store an integer
-    if(symbolPtr->type == INTEGER_NUMBER_VALUE){
-
-      symbolPtr->value.intVal = newIntegerValue;
+    while(currPtr != NULL) {
+        assert(currPtr->nombre);
+        if(strcmp(currPtr->nombre, nombre) == 0)
+        return currPtr;
+        currPtr = currPtr->next;
     }
-    else{
 
-      // Error out and exit!
-      printf("error");
-    }
-  }
-  else{
-
-    // Error out and exit!
-    printf("error");
-  }
+    return NULL;
 }
 
-void setIntValueToSymbol(char const *symbolName, int newIntegerValue){
+struct nodoTS* auxRetrieveFromSymbolTable(char const *symbolName, struct nodoTS* symbolTableHead) {
+    struct nodoTS *currPtr = symbolTableHead;
 
-  struct nodoTS *symbolPtr = retrieveFromSymbolTable(symbolName);
-
-  if(symbolPtr != NULL){
-
-    // Check that the symbol does in fact store an integer
-    if(symbolPtr->type == INTEGER_NUMBER_VALUE){
-
-      symbolPtr->value.intVal = newIntegerValue;
+    while(currPtr != NULL) {
+        assert(currPtr->nombre);
+        if(strcmp(currPtr->nombre, symbolName) == 0)
+        return currPtr;
+        currPtr = currPtr->next;
     }
-    else{
 
-      // Error out and exit!
-      printf("error");
-    }
-  }
-  else{
-
-    // Error out and exit!
-    printf("error");
-  }
+    return NULL;
 }
 
-void setDoubleValueToSymbolFunc(char * symbolName, double newDoubleValue, char * name){
+struct nodoTS * retrieveFromTsl(char * simboloActual, struct nodoTS* headTsl) {
+    struct nodoTS* currPtr = headTsl;
 
-  struct nodoTSF * currIdFunc = retrieveFromFunSymbolTable(name);
-  struct nodoTS *symbolPtr = retrieveFromTsl(symbolName, currIdFunc->tsl);
-
-  if(symbolPtr != NULL){
-
-    // Check that the symbol does in fact store a double
-    if(symbolPtr->type == FLOATING_POINT_NUMBER_VALUE){
-
-      symbolPtr->value.doubleVal = newDoubleValue;
+    while(currPtr != NULL ) {
+        assert(currPtr->nombre);
+        if(strcmp(currPtr->nombre, simboloActual) == 0)
+        return currPtr;
+        currPtr = currPtr->next;
     }
-    else{
 
-      // Error out and exit!
-      printf("error");
-    }
-  }
+    return NULL;
 }
 
+struct nodoTS* retrieveFromSymbolTable(char const *symbolName) {
+    struct nodoTS *currPtr = NULL;
 
-void setDoubleValueToSymbol(char const *symbolName, double newDoubleValue){
+    if(!currPtr)
+        currPtr = auxRetrieveFromSymbolTable(symbolName, head);
 
-  struct nodoTS *symbolPtr = retrieveFromSymbolTable(symbolName);
-
-  if(symbolPtr != NULL){
-
-    // Check that the symbol does in fact store a double
-    if(symbolPtr->type == FLOATING_POINT_NUMBER_VALUE){
-
-      symbolPtr->value.doubleVal = newDoubleValue;
-    }
-    else{
-
-      // Error out and exit!
-      printf("error");
-    }
-  }
+    return currPtr;
 }
 
+void setIntValueToSymbolFunc(char * symbolName, int newIntegerValue, char * name) {
+    struct nodoTSF * currIdFunc = retrieveFromFunSymbolTable(name);
+    struct nodoTS *symbolPtr = retrieveFromTsl(symbolName, currIdFunc->tsl);
 
+    if(symbolPtr != NULL) {
+        if(symbolPtr->type == INTEGER_NUMBER_VALUE) {
+            symbolPtr->value.intVal = newIntegerValue;
+        }
+        else {
+            printf("error");
+        }
+    }
+    else {
+        printf("error");
+    }
+}
 
+void setIntValueToSymbol(char const *symbolName, int newIntegerValue) {
+    struct nodoTS *symbolPtr = retrieveFromSymbolTable(symbolName);
 
-int computeSubTreeNodeTypeCount(int nodeType, ASR * node){
-    //printf("node name = %d\n", node->type);
-  if(node == NULL)
+    if(symbolPtr != NULL) {
+        if(symbolPtr->type == INTEGER_NUMBER_VALUE) {
+
+            symbolPtr->value.intVal = newIntegerValue;
+        }
+        else {
+            printf("error");
+        }
+    }
+    else {
+        printf("error");
+    }
+}
+
+void setDoubleValueToSymbolFunc(char * symbolName, double newDoubleValue, char * name) {
+    struct nodoTSF * currIdFunc = retrieveFromFunSymbolTable(name);
+    struct nodoTS *symbolPtr = retrieveFromTsl(symbolName, currIdFunc->tsl);
+
+    if(symbolPtr != NULL) {
+        if(symbolPtr->type == FLOATING_POINT_NUMBER_VALUE) {
+            symbolPtr->value.doubleVal = newDoubleValue;
+        }
+        else {
+            printf("error");
+        }
+    }
+}
+
+void setDoubleValueToSymbol(char const *symbolName, double newDoubleValue) {
+    struct nodoTS *symbolPtr = retrieveFromSymbolTable(symbolName);
+
+    if(symbolPtr != NULL){
+        if(symbolPtr->type == FLOATING_POINT_NUMBER_VALUE) {
+            symbolPtr->value.doubleVal = newDoubleValue;
+        }
+        else {
+            printf("error");
+        }
+    }
+}
+
+int computeSubTreeNodeTypeCount(int nodeType, ASR * node) {
+    if(node == NULL) return 0;
+
+    int count = 0;
+    if(node->type == nodeType) {
+        count++;
+    }
+
+    // In case it is an ID
+    else if(node->type == ID_VALUE) {
+        struct nodoTS * currIdNode = retrieveFromSymbolTable(node->value.idName);
+        if(currIdNode->type == nodeType) count++;
+    }
+
+    int i = 0;
+    for(i = 0; i < 4; i++) {
+        count += computeSubTreeNodeTypeCount(nodeType, node->arrPtr[i]);
+    }
+
+    return count;
+}
+
+int computeSubTreeNodeTypeCountFunc(int nodeType, ASR * node, char * name) {
+    if(node == NULL) return 0;
+    int count = 0;
+
+    if(node->type == nodeType) {
+        count++;
+    }
+
+    else if(node->type == ID_VALUE) {
+        struct nodoTSF * currIdFunc = retrieveFromFunSymbolTable(name);
+        struct nodoTS * currIdNode = retrieveFromTsl(node->value.idName, currIdFunc->tsl);
+        if(currIdNode->type == nodeType) count++;
+    }
+
+    int i = 0;
+    for(i = 0; i < 4; i++) {
+        count += computeSubTreeNodeTypeCountFunc(nodeType, node->arrPtr[i], name);
+    }
+
+    return count;
+}
+
+int exprIsTypeConsistent(ASR * exprNode) {
+    int intSubTreeNodeCount = computeSubTreeNodeTypeCount(INTEGER_NUMBER_VALUE, exprNode);
+    int doubleSubTreeNodeCount = computeSubTreeNodeTypeCount(FLOATING_POINT_NUMBER_VALUE, exprNode);
+
+    if(intSubTreeNodeCount > 0 && doubleSubTreeNodeCount == 0)
+        return INTEGER_NUMBER_VALUE;
+
+    else if(intSubTreeNodeCount == 0 && doubleSubTreeNodeCount > 0)
+        return FLOATING_POINT_NUMBER_VALUE;
+
     return 0;
-
-  int count = 0;
-
-  // In case it is a constant
-  if(node->type == nodeType){
-
-    count++;
-  }
-
-  // In case it is an ID
-  else if(node->type == ID_VALUE){
-
-    struct nodoTS * currIdNode = retrieveFromSymbolTable(node->value.idName);
-
-    if(currIdNode->type == nodeType)
-      count++;
-  }
-
-  int i = 0;
-  for(i = 0; i < 4; i++){
-
-    count += computeSubTreeNodeTypeCount(nodeType, node->arrPtr[i]);
-  }
-
-  return count;
 }
 
-int computeSubTreeNodeTypeCountFunc(int nodeType, ASR * node, char * name){
-  //printf("node name = %d\n", node->type);
-  if(node == NULL)
+int exprIsTypeConsistentFunc(ASR * exprNode, char * name) {
+    int intSubTreeNodeCount = computeSubTreeNodeTypeCountFunc(INTEGER_NUMBER_VALUE, exprNode, name);
+    int doubleSubTreeNodeCount = computeSubTreeNodeTypeCountFunc(FLOATING_POINT_NUMBER_VALUE, exprNode, name);
+
+    if(intSubTreeNodeCount > 0 && doubleSubTreeNodeCount == 0)
+        return INTEGER_NUMBER_VALUE;
+
+    else if(intSubTreeNodeCount == 0 && doubleSubTreeNodeCount > 0)
+        return FLOATING_POINT_NUMBER_VALUE;
+
     return 0;
-//  printf("ya entre 4\n");
-  int count = 0;
-
-  // In case it is a constant
-  if(node->type == nodeType){
-
-    count++;
-  }
-
-  // In case it is an ID
-  else if(node->type == ID_VALUE){
-
-    struct nodoTSF * currIdFunc = retrieveFromFunSymbolTable(name);
-    struct nodoTS * currIdNode = retrieveFromTsl(node->value.idName, currIdFunc->tsl);
-
-    if(currIdNode->type == nodeType)
-      count++;
-  }
-
-  int i = 0;
-  for(i = 0; i < 4; i++){
-
-    count += computeSubTreeNodeTypeCountFunc(nodeType, node->arrPtr[i], name);
-  }
-
-  return count;
 }
 
-int exprIsTypeConsistent(ASR * exprNode){
-
-  // Count the number of subtree nodes of both data type
-  // If the expression is type-consistent, then one of those counts
-  // will be zero
-//  printf("ya entre a type\n");
-  int intSubTreeNodeCount = computeSubTreeNodeTypeCount(INTEGER_NUMBER_VALUE, exprNode);
-  int doubleSubTreeNodeCount = computeSubTreeNodeTypeCount(FLOATING_POINT_NUMBER_VALUE, exprNode);
-
-  // printTree(exprNode);
-  // printf("intSubTreeNodeCount: %d; doubleSubTreeNodeCount: %d\n", intSubTreeNodeCount, doubleSubTreeNodeCount);
-
-  if(intSubTreeNodeCount > 0 && doubleSubTreeNodeCount == 0)
-    return INTEGER_NUMBER_VALUE;
-
-  else if(intSubTreeNodeCount == 0 && doubleSubTreeNodeCount > 0)
-    return FLOATING_POINT_NUMBER_VALUE;
-
-  // If the control gets here, there is a mistake: types are inconsistent
-  // Error out and exit!
-  //handleError(ERROR_CODE_DATA_TYPE_MISMATCH, ERROR_MESSAGE_DATA_TYPE_MISMATCH);
-
-  return 0;
+int isIntegerExprFunc(ASR * exprNode, char * name) {
+    return exprIsTypeConsistentFunc(exprNode, name) == INTEGER_NUMBER_VALUE;
 }
 
-int exprIsTypeConsistentFunc(ASR * exprNode, char * name){
-
-  // Count the number of subtree nodes of both data type
-  // If the expression is type-consistent, then one of those counts
-  // will be zero
-//  printf("ya entre \n");
-  int intSubTreeNodeCount = computeSubTreeNodeTypeCountFunc(INTEGER_NUMBER_VALUE, exprNode, name);
-  int doubleSubTreeNodeCount = computeSubTreeNodeTypeCountFunc(FLOATING_POINT_NUMBER_VALUE, exprNode, name);
-
-  // printTree(exprNode);
-  // printf("intSubTreeNodeCount: %d; doubleSubTreeNodeCount: %d\n", intSubTreeNodeCount, doubleSubTreeNodeCount);
-
-  if(intSubTreeNodeCount > 0 && doubleSubTreeNodeCount == 0)
-    return INTEGER_NUMBER_VALUE;
-
-  else if(intSubTreeNodeCount == 0 && doubleSubTreeNodeCount > 0)
-    return FLOATING_POINT_NUMBER_VALUE;
-
-  // If the control gets here, there is a mistake: types are inconsistent
-  // Error out and exit!
-  //handleError(ERROR_CODE_DATA_TYPE_MISMATCH, ERROR_MESSAGE_DATA_TYPE_MISMATCH);
-
-  return 0;
+int isIntegerExpr(ASR * exprNode) {
+    return exprIsTypeConsistent(exprNode) == INTEGER_NUMBER_VALUE;
 }
 
-int isIntegerExprFunc(ASR * exprNode, char * name){
-  //printf("ya entre \n");
-  return exprIsTypeConsistentFunc(exprNode, name) == INTEGER_NUMBER_VALUE;
+int isFloatingPointExprFunc(ASR * exprNode, char * name) {
+    return exprIsTypeConsistentFunc(exprNode, name) == FLOATING_POINT_NUMBER_VALUE;
 }
 
-int isIntegerExpr(ASR * exprNode){
-//  printf("ya entre \n");
-  return exprIsTypeConsistent(exprNode) == INTEGER_NUMBER_VALUE;
-}
-
-int isFloatingPointExprFunc(ASR * exprNode, char * name){
-
-  return exprIsTypeConsistentFunc(exprNode, name) == FLOATING_POINT_NUMBER_VALUE;
-}
-
-int isFloatingPointExpr(ASR * exprNode){
-
-  return exprIsTypeConsistent(exprNode) == FLOATING_POINT_NUMBER_VALUE;
+int isFloatingPointExpr(ASR * exprNode) {
+    return exprIsTypeConsistent(exprNode) == FLOATING_POINT_NUMBER_VALUE;
 }
 
 
-int func_exprIntFunc(ASR * exprIntNode, char * name){
-
-//  printf("volvi a entrar\n");
-  // If we enter an EXPR node, we must at least one term.
-  assert(exprIntNode != NULL);
-
-
-  if(exprIntNode->type == PLUS){
-
-    return func_exprIntFunc(exprIntNode->arrPtr[0], name)
-      + func_exprIntFunc(exprIntNode->arrPtr[1], name);
-  }
-  else if(exprIntNode->type == MINUS){
-
-    return func_exprIntFunc(exprIntNode->arrPtr[0], name)
-      - func_exprIntFunc(exprIntNode->arrPtr[1], name);
-  }
-  else if(exprIntNode->type == STAR){
-
-    return func_exprIntFunc(exprIntNode->arrPtr[0], name)
-      * func_exprIntFunc(exprIntNode->arrPtr[1], name);
-  }
-  else if(exprIntNode->type == FORWARD_SLASH){
-
-    return func_exprIntFunc(exprIntNode->arrPtr[0], name)
-      / func_exprIntFunc(exprIntNode->arrPtr[1], name);
-  }
-
-  assert(exprIntNode->type == INTEGER_NUMBER_VALUE
-    || exprIntNode->type == ID_VALUE
-    || exprIntNode->type == FUNCTION_VALUE);
-
-  int valToReturn = 0;
-
-  if(exprIntNode->type == INTEGER_NUMBER_VALUE){
-
-    valToReturn = exprIntNode->value.intVal;
-  }
-  else if(exprIntNode->type == ID_VALUE){
-
-    struct nodoTSF * currIdFunc = retrieveFromFunSymbolTable(name);
-    struct nodoTS * currNode = retrieveFromTsl(exprIntNode->value.idName, currIdFunc->tsl);
-    assert(currNode->type == INTEGER_NUMBER_VALUE);
-
-    //printSymbolTableNode(currNode);
-    valToReturn = currNode->value.intVal;
-  }
-  /*else if(exprIntNode->type == FUNCTION_VALUE){
-
-    (exprIntNode);
-    // As we know that this is a function, then we know that this symbol must exist in the symbol table
-    // of the main function, so directly call the auxiliary method that looks in that specific symbol table.
-    struct SymbolTableNode* currFunc = auxRetrieveFromSymbolTable(exprIntNode->value.idName, mainFunctionSymbolTableHead);
-    assert(currFunc->returnType == INTEGER_NUMBER_VALUE);
-    // valToReturn = currFunc->value.intVal;
-    valToReturn = ptrFunctionCallStackTop->value.intVal;
-    popFunctionCallToStack();
-  }*/
-
-  return valToReturn;
-}
-
-
-int func_exprInt(ASR * exprIntNode){
-
-
-  // If we enter an EXPR node, we must at least one term.
-  assert(exprIntNode != NULL);
-
-
-  if(exprIntNode->type == PLUS){
-
-    return func_exprInt(exprIntNode->arrPtr[0])
-      + func_exprInt(exprIntNode->arrPtr[1]);
-  }
-  else if(exprIntNode->type == MINUS){
-
-    return func_exprInt(exprIntNode->arrPtr[0])
-      - func_exprInt(exprIntNode->arrPtr[1]);
-  }
-  else if(exprIntNode->type == STAR){
-
-    return func_exprInt(exprIntNode->arrPtr[0])
-      * func_exprInt(exprIntNode->arrPtr[1]);
-  }
-  else if(exprIntNode->type == FORWARD_SLASH){
-
-    return func_exprInt(exprIntNode->arrPtr[0])
-      / func_exprInt(exprIntNode->arrPtr[1]);
-  }
-
-  assert(exprIntNode->type == INTEGER_NUMBER_VALUE
-    || exprIntNode->type == ID_VALUE
-    || exprIntNode->type == FUNCTION_VALUE);
-
-  int valToReturn = 0;
-
-  if(exprIntNode->type == INTEGER_NUMBER_VALUE){
-
-    valToReturn = exprIntNode->value.intVal;
-  }
-  else if(exprIntNode->type == ID_VALUE){
-
-    struct nodoTS * currNode = retrieveFromSymbolTable(exprIntNode->value.idName);
-
-    assert(currNode->type == INTEGER_NUMBER_VALUE);
-
-    //printSymbolTableNode(currNode);
-    valToReturn = currNode->value.intVal;
-  }
-  /*else if(exprIntNode->type == FUNCTION_VALUE){
-
-    (exprIntNode);
-    // As we know that this is a function, then we know that this symbol must exist in the symbol table
-    // of the main function, so directly call the auxiliary method that looks in that specific symbol table.
-    struct SymbolTableNode* currFunc = auxRetrieveFromSymbolTable(exprIntNode->value.idName, mainFunctionSymbolTableHead);
-    assert(currFunc->returnType == INTEGER_NUMBER_VALUE);
-    // valToReturn = currFunc->value.intVal;
-    valToReturn = ptrFunctionCallStackTop->value.intVal;
-    popFunctionCallToStack();
-  }*/
-
-  return valToReturn;
-}
-
-double func_exprDoubleFunc(ASR * exprDoubleNode, char * name){
-  // If we enter an EXPR node, we must at least one term.
-  assert(exprDoubleNode != NULL);
-
-  if(exprDoubleNode->type == PLUS){
-
-    return func_exprDoubleFunc(exprDoubleNode->arrPtr[0], name)
-      + func_exprDoubleFunc(exprDoubleNode->arrPtr[1], name);
-  }
-  else if(exprDoubleNode->type == MINUS){
-
-    return func_exprDoubleFunc(exprDoubleNode->arrPtr[0], name)
-      - func_exprDoubleFunc(exprDoubleNode->arrPtr[1], name);
-  }
-  else if(exprDoubleNode->type == STAR){
-
-    return func_exprDoubleFunc(exprDoubleNode->arrPtr[0], name)
-      * func_exprDoubleFunc(exprDoubleNode->arrPtr[1], name);
-  }
-  else if(exprDoubleNode->type == FORWARD_SLASH){
-
-    return func_exprDoubleFunc(exprDoubleNode->arrPtr[0], name)
-      / func_exprDoubleFunc(exprDoubleNode->arrPtr[1], name);
-  }
-
-  assert(exprDoubleNode->type == ID_VALUE
-    || exprDoubleNode-> type == FLOATING_POINT_NUMBER_VALUE
-    || exprDoubleNode-> type == FUNCTION_VALUE);
-
-  // handleError(ERROR_CODE_DATA_TYPE_MISMATCH, ERROR_MESSAGE_DATA_TYPE_MISMATCH);
-
-  double valToReturn = 0;
-
-  if(exprDoubleNode->type == FLOATING_POINT_NUMBER_VALUE){
-    valToReturn = exprDoubleNode->value.doubleVal;
-  }
-  else if(exprDoubleNode->type == ID_VALUE){
-
-    struct nodoTSF * currIdFunc = retrieveFromFunSymbolTable(name);
-    struct nodoTS * currNode = retrieveFromTsl(exprDoubleNode->value.idName, currIdFunc->tsl);
-
-    assert(currNode->type == FLOATING_POINT_NUMBER_VALUE);
-    //printSymbolTableNode(currNode);
-    valToReturn = currNode->value.doubleVal;
-  }
-  /*else if(exprDoubleNode-> type == FUNCTION_VALUE){
-
-    func_func(exprDoubleNode);
-    // As we know that this is a function, then we know that this symbol must exist in the symbol table
-    // of the main function, so directly call the auxiliary method that looks in that specific symbol table.
-    struct SymbolTableNode* currFunc = auxRetrieveFromSymbolTable(exprDoubleNode->value.idName, mainFunctionSymbolTableHead);
-    assert(currFunc->returnType == FLOATING_POINT_NUMBER_VALUE);
-    // valToReturn = currFunc->value.doubleVal;
-    valToReturn = ptrFunctionCallStackTop->value.doubleVal;
-    popFunctionCallToStack();
-  }*/
-
-  return valToReturn;
-}
-
-
-
-double func_exprDouble(ASR * exprDoubleNode){
-  // If we enter an EXPR node, we must at least one term.
-  assert(exprDoubleNode != NULL);
-
-  if(exprDoubleNode->type == PLUS){
-
-    return func_exprDouble(exprDoubleNode->arrPtr[0])
-      + func_exprDouble(exprDoubleNode->arrPtr[1]);
-  }
-  else if(exprDoubleNode->type == MINUS){
-
-    return func_exprDouble(exprDoubleNode->arrPtr[0])
-      - func_exprDouble(exprDoubleNode->arrPtr[1]);
-  }
-  else if(exprDoubleNode->type == STAR){
-
-    return func_exprDouble(exprDoubleNode->arrPtr[0])
-      * func_exprDouble(exprDoubleNode->arrPtr[1]);
-  }
-  else if(exprDoubleNode->type == FORWARD_SLASH){
-
-    return func_exprDouble(exprDoubleNode->arrPtr[0])
-      / func_exprDouble(exprDoubleNode->arrPtr[1]);
-  }
-
-  assert(exprDoubleNode->type == ID_VALUE
-    || exprDoubleNode-> type == FLOATING_POINT_NUMBER_VALUE
-    || exprDoubleNode-> type == FUNCTION_VALUE);
-
-  // handleError(ERROR_CODE_DATA_TYPE_MISMATCH, ERROR_MESSAGE_DATA_TYPE_MISMATCH);
-
-  double valToReturn = 0;
-
-  if(exprDoubleNode->type == FLOATING_POINT_NUMBER_VALUE){
-    valToReturn = exprDoubleNode->value.doubleVal;
-  }
-  else if(exprDoubleNode->type == ID_VALUE){
-
-    struct nodoTS * currNode = retrieveFromSymbolTable(exprDoubleNode->value.idName);
-    assert(currNode->type == FLOATING_POINT_NUMBER_VALUE);
-    //printSymbolTableNode(currNode);
-    valToReturn = currNode->value.doubleVal;
-  }
-  /*else if(exprDoubleNode-> type == FUNCTION_VALUE){
-
-    func_func(exprDoubleNode);
-    // As we know that this is a function, then we know that this symbol must exist in the symbol table
-    // of the main function, so directly call the auxiliary method that looks in that specific symbol table.
-    struct SymbolTableNode* currFunc = auxRetrieveFromSymbolTable(exprDoubleNode->value.idName, mainFunctionSymbolTableHead);
-    assert(currFunc->returnType == FLOATING_POINT_NUMBER_VALUE);
-    // valToReturn = currFunc->value.doubleVal;
-    valToReturn = ptrFunctionCallStackTop->value.doubleVal;
-    popFunctionCallToStack();
-  }*/
-
-  return valToReturn;
-}
-
-
-int func_expressionFunc(ASR* nodeExpr){
-
-  // If we enter an EXPRESION node, we must have two 'expr' terms
-  assert(nodeExpr->arrPtr[0] != NULL);
-  assert(nodeExpr->arrPtr[1] != NULL);
-
-  if(isIntegerExprFunc(nodeExpr->arrPtr[0], currentFuncName)){
-
-    // Assert that the second 'expr' term also contains an integer expression
-    assert(isIntegerExpr(nodeExpr->arrPtr[1]));
-    //printNodeType(nodeExpr->type, "hola");
-    int intExpresionLeftSide = func_exprIntFunc(nodeExpr->arrPtr[0], currentFuncName);
-    int intExpresionRightSide = func_exprIntFunc(nodeExpr->arrPtr[1], currentFuncName);
-
-    switch(nodeExpr->type){
-
-      case LT:
-        return intExpresionLeftSide < intExpresionRightSide;
-
-      case GT:
-        return intExpresionLeftSide > intExpresionRightSide;
-
-      case EQ:
-        return intExpresionLeftSide == intExpresionRightSide;
-
-      case LEQ:
-        return intExpresionLeftSide <= intExpresionRightSide;
-
-      case GEQ:
-        return intExpresionLeftSide >= intExpresionRightSide;
+int func_exprIntFunc(ASR * exprIntNode, char * name) {
+    assert(exprIntNode != NULL);
+
+    if(exprIntNode->type == PLUS) {
+        return func_exprIntFunc(exprIntNode->arrPtr[0], name)
+        + func_exprIntFunc(exprIntNode->arrPtr[1], name);
     }
-  }
-  else{
-
-    assert(isFloatingPointExprFunc(nodeExpr->arrPtr[0], currentFuncName));
-
-    // Assert that the second 'expr' term also contains an floating-point expression
-    assert(isFloatingPointExprFunc(nodeExpr->arrPtr[1], currentFuncName));
-
-    double doubleExpresionLeftSide = func_exprDoubleFunc(nodeExpr->arrPtr[0], currentFuncName);
-    int doubleExpresionRightSide = func_exprDoubleFunc(nodeExpr->arrPtr[1], currentFuncName);
-
-    switch(nodeExpr->type){
-
-      case LT:
-        return doubleExpresionLeftSide < doubleExpresionRightSide;
-
-      case GT:
-        return doubleExpresionLeftSide > doubleExpresionRightSide;
-
-      case EQ:
-        return doubleExpresionLeftSide == doubleExpresionRightSide;
-
-      case LEQ:
-        return doubleExpresionLeftSide <= doubleExpresionRightSide;
-
-      case GEQ:
-        return doubleExpresionLeftSide >= doubleExpresionRightSide;
+    else if(exprIntNode->type == MINUS) {
+        return func_exprIntFunc(exprIntNode->arrPtr[0], name)
+        - func_exprIntFunc(exprIntNode->arrPtr[1], name);
     }
-  }
-
-  // Control should never reach this part of the function.
-  assert(NULL);
-  return -1;
-}
-
-
-int func_expression(ASR* nodeExpr){
-
-  // If we enter an EXPRESION node, we must have two 'expr' terms
-  assert(nodeExpr->arrPtr[0] != NULL);
-  assert(nodeExpr->arrPtr[1] != NULL);
-
-  if(isIntegerExpr(nodeExpr->arrPtr[0])){
-
-    // Assert that the second 'expr' term also contains an integer expression
-    assert(isIntegerExpr(nodeExpr->arrPtr[1]));
-    //printNodeType(nodeExpr->type, "hola");
-    int intExpresionLeftSide = func_exprInt(nodeExpr->arrPtr[0]);
-    int intExpresionRightSide = func_exprInt(nodeExpr->arrPtr[1]);
-
-    switch(nodeExpr->type){
-
-      case LT:
-        return intExpresionLeftSide < intExpresionRightSide;
-
-      case GT:
-        return intExpresionLeftSide > intExpresionRightSide;
-
-      case EQ:
-        return intExpresionLeftSide == intExpresionRightSide;
-
-      case LEQ:
-        return intExpresionLeftSide <= intExpresionRightSide;
-
-      case GEQ:
-        return intExpresionLeftSide >= intExpresionRightSide;
+    else if(exprIntNode->type == STAR) {
+        return func_exprIntFunc(exprIntNode->arrPtr[0], name)
+        * func_exprIntFunc(exprIntNode->arrPtr[1], name);
     }
-  }
-  else{
-
-    assert(isFloatingPointExpr(nodeExpr->arrPtr[0]));
-
-    // Assert that the second 'expr' term also contains an floating-point expression
-    assert(isFloatingPointExpr(nodeExpr->arrPtr[1]));
-
-    double doubleExpresionLeftSide = func_exprDouble(nodeExpr->arrPtr[0]);
-    int doubleExpresionRightSide = func_exprDouble(nodeExpr->arrPtr[1]);
-
-    switch(nodeExpr->type){
-
-      case LT:
-        return doubleExpresionLeftSide < doubleExpresionRightSide;
-
-      case GT:
-        return doubleExpresionLeftSide > doubleExpresionRightSide;
-
-      case EQ:
-        return doubleExpresionLeftSide == doubleExpresionRightSide;
-
-      case LEQ:
-        return doubleExpresionLeftSide <= doubleExpresionRightSide;
-
-      case GEQ:
-        return doubleExpresionLeftSide >= doubleExpresionRightSide;
-    }
-  }
-
-  // Control should never reach this part of the function.
-  assert(NULL);
-  return -1;
-}
-
-int readInt(){
-
-  int intVal = -1;
-  printf("escribe tu entero: ");
-  int scanfReturnValue = scanf("%d", &intVal);
-  assert(scanfReturnValue > 0);
-  return intVal;
-}
-
-
-double readDouble(){
-
-  double doubleVal = -1.0;
-  printf("Escribe tu numero de punto flotante: ");
-  int scanfReturnValue = scanf("%lf", &doubleVal);
-
-  assert(scanfReturnValue > 0);
-  return doubleVal;
-}
-
-
-/* La funci�n recorre es el int�rprtete en este caso. Simplemente recorre
-   el �rbol en postorden para obtener los valores correspondientes.
-*/
-
-void printNodeType(int type, char* label){
-
-  // If our names array contains an entry for this type
-  if(type >= 0 && type < sizeof(SyntaxTreeNodeTypeName)){
-
-    printf("%s: %s\n", label, SyntaxTreeNodeTypeName[type]);
-  }
-  else{
-
-    printf("%s: %d\n", label, type);
-  }
-}
-
-void preTreePrinting(ASR* node, char* nombre){
-  printf("###################### INICIO ARBOL SINTACTICO REDUCIDO DE LA FUNCION %s #####################\n\n", nombre);
-  printTree(node);
-  printf("###################### FIN ARBOL SINTACTICO REDUCIDO DE LA FUNCION %s #####################\n\n", nombre);
-
-}
-
-void printTree(ASR * node){
-
-  if(node == NULL)
-    return;
-
-  printNodeType(node->type, "type");
-//printf("address = %p\n", node);
-  printNodeType(node->parentNodeType, "parentNodeType");
-
-  if(node->type == INTEGER_NUMBER_VALUE){
-
-    printf("Node value = %d\n", node->value.intVal);
-  }
-
-  else if(node->type == ID_VALUE){
-
-    printf("Node value = %s\n", node->value.idName);
-  }
-
-  else if(node->type == FLOATING_POINT_NUMBER_VALUE){
-
-    printf("Node value = %f\n", node->value.doubleVal);
-  }
-  else if(node->type == FUNCTION_VALUE){
-    printf("Node value = %s\n", node->value.idName);
-  }
-
-  // Print the addresses of the current node's children
-  int i = 0;
-/*
-  for(i = 0; i < 4; i++)
-    printf("ptr #%d: %p\n", i + 1, node->arrPtr[i]);
-*/
-
-  printf("\n");
-
-  // Now call the printing of the current node's children
-  for(i = 0; i < 4; i++)
-    printTree(node->arrPtr[i]);
-}
-
-int traverseTree(ASR * node, int c){
-  if(!node)
-   return 0;
-
-  int count = 0;
-
-  if(c <= 1)
-    count += (node->type == PARAMETER_VALUE);
-
-  for(int i = 0; i < 4; i++){
-    count += traverseTree(node->arrPtr[i], c + (node->type == PARAMETER_VALUE));
-  }
-
-  return count;
-
-
-}
-
-void obtainType(struct nodoTS * tsl){
-  struct nodoTS * ptr = tsl;
-
-  while(ptr != NULL){
-    if(ptr->type == INTEGER_NUMBER_VALUE) printf("(int, %d) ",ptr->value.intVal);
-    else if(ptr->type == FLOATING_POINT_NUMBER_VALUE) printf("(float, %.2f) ", ptr->value.doubleVal);
-
-    ptr = ptr->next;
-  }
-}
-
-ASR * getNextPassedParameter(ASR ** ptrPtrFuncNodeSubStree){
-
-  assert(*ptrPtrFuncNodeSubStree);
-  ASR  *ptrNextPassedParameter = NULL;
-
-  if((*ptrPtrFuncNodeSubStree)->type == FUNCTION_VALUE){
-
-    assert((*ptrPtrFuncNodeSubStree)->arrPtr[0]);
-    ptrNextPassedParameter = (*ptrPtrFuncNodeSubStree)->arrPtr[0]->arrPtr[0];
-  }
-  else{
-
-    assert((*ptrPtrFuncNodeSubStree)->type == PARAMETER_VALUE);
-    ptrNextPassedParameter = (*ptrPtrFuncNodeSubStree)->arrPtr[0];
-  }
-
-  (*ptrPtrFuncNodeSubStree) = (*ptrPtrFuncNodeSubStree)->arrPtr[0]->arrPtr[1];
-
-  assert(ptrNextPassedParameter);
-  return ptrNextPassedParameter;
-}
-
-int tslLength(struct nodoTS * tsl){
-  struct nodoTS * ptr = tsl;
-  int tslL = 0;
-
-  while(ptr != NULL){
-    tslL++;
-    ptr = ptr->next;
-  }
-  //printf("length of tsl = %d\n", tslL);
-  return tslL;
-}
-
-void moveTslForward(struct nodoTS ** ptrPtrTslHead, int moves){
-  for(int i = 0; i < moves; i++){
-    *ptrPtrTslHead = (*ptrPtrTslHead)->next;
-  }
-}
-
-
-void func_func(ASR * nodeFunc){
-  struct nodoTSF * currFunc = retrieveFromFunSymbolTable(nodeFunc->value.idName);
-  //int count = 0;
-
-  //PART TO CHECK THAT THE AMOUNT OF PARAMS PASSED ARE THE SAME AS AMOUNT OF PARAMS IN FORMAL FUNCTION
-  assert(currFunc != NULL);
-  int formalParams = currFunc->numParams;
-//  printf("# params: %d\n", formalParams);
-
-  int amountOfParamsPassed = traverseTree(nodeFunc, 0);
-
-//  printf("# params passed: %d\n", amountOfParamsPassed);
-
-  //obtainType(currFunc->tsl);
-  assert(formalParams == amountOfParamsPassed);
-
-
-  //PART THAT CHECKS THAT THE TYPE OF THE PARAMS PASSED ARE THE SAME AS THE TYPE FOR THE PARAMS OF THE FORMAL FUNCTION
-  struct nodoTS * currParamPassed = NULL;
-
-  ASR* ptrFuncNodeSubTree = nodeFunc;
-  ASR * paramsPassed = NULL;
-
-  currParamPassed = currFunc->tsl;
-
-  for(int i = 0; i < amountOfParamsPassed; i++){
-    paramsPassed = getNextPassedParameter(&ptrFuncNodeSubTree);
-  //  printf("value of param func %d\n", currParamPassed->value.intVal);
-
-  //  printf("value of params passed %d\n", paramsPassed->value.intVal);
-    assert(currParamPassed->type == paramsPassed->type);
-
-    currParamPassed = currParamPassed->next;
-  }
-
-  //PART THAT ASSIGNS THE PARAMS PASSED TO THE LST OF THE FORMAL FUNCTION
-
-  int functionSymbolTableLength = tslLength(currFunc->tsl);
-  //printf("length of tsl:  %d\n", functionSymbolTableLength);
-  struct nodoTS * currParamValues = NULL;
-
-  ASR* ptrFuncNodeTree = nodeFunc;
-  ASR * paramsValue = NULL;
-
-  currParamValues = currFunc->tsl;
-  moveTslForward(&currParamValues, functionSymbolTableLength - formalParams);
-  for(int i = 0; i < amountOfParamsPassed; i++){
-    paramsPassed = getNextPassedParameter(&ptrFuncNodeTree);
-  //  printf("value of param func %d\n", currParamPassed->value.intVal);
-
-   if(currParamValues->type == INTEGER_NUMBER_VALUE){
-     currParamValues->value.intVal = func_exprInt(paramsPassed);
-     //printf("value of assigned params int %d  %s\n", currParamValues->value.intVal, currParamValues->nombre);
-   }
-   else if(currParamValues->type = FLOATING_POINT_NUMBER_VALUE){
-     currParamValues->value.doubleVal = func_exprDouble(paramsPassed);
-  //  printf("value of assigned params float %lf\n", currParamValues->value.doubleVal);
-   }
-
-    currParamValues = currParamValues->next;
-  }
-
-
-  struct nodoTSF * funcSymbol = retrieveFromFunSymbolTable(nodeFunc->value.idName);
-  funcRunning = 1;
-  currentFuncName = nodeFunc->value.idName;
-  interpreta(funcSymbol->cuerpo);
-
-
-}
-
-void func_read(ASR * nodeRead){
-  assert(nodeRead->arrPtr[0] != NULL);
-  if(funcRunning == 0){
-    struct nodoTS * currNode = retrieveFromSymbolTable(nodeRead->arrPtr[0]->value.idName);
-
-    int valueToSet;
-    double doubleValueToSet;
-
-    switch (currNode->type) {
-      case INTEGER_NUMBER_VALUE:
-      valueToSet = readInt();
-      setIntValueToSymbol(currNode->nombre,valueToSet);
-      assert(valueToSet == currNode->value.intVal);
-
-      break;
-      case FLOATING_POINT_NUMBER_VALUE:
-      doubleValueToSet = readDouble();
-      setDoubleValueToSymbol(currNode->nombre, doubleValueToSet);
-      assert(doubleValueToSet == currNode->value.doubleVal);
-      break;
-    }
-  } else if(funcRunning == 1){
-
-    struct nodoTSF * currIdFunc = retrieveFromFunSymbolTable(currentFuncName);
-    struct nodoTS * currNode = retrieveFromTsl(nodeRead->arrPtr[0]->value.idName, currIdFunc->tsl);
-
-    int valueToSet;
-    double doubleValueToSet;
-
-    switch (currNode->type) {
-      case INTEGER_NUMBER_VALUE:
-      valueToSet = readInt();
-      setIntValueToSymbolFunc(currNode->nombre,valueToSet, currentFuncName);
-      assert(valueToSet == currNode->value.intVal);
-
-      break;
-      case FLOATING_POINT_NUMBER_VALUE:
-      doubleValueToSet = readDouble();
-      setDoubleValueToSymbolFunc(currNode->nombre, doubleValueToSet, currentFuncName);
-      assert(doubleValueToSet == currNode->value.doubleVal);
-      break;
+    else if(exprIntNode->type == FORWARD_SLASH) {
+        return func_exprIntFunc(exprIntNode->arrPtr[0], name)
+        / func_exprIntFunc(exprIntNode->arrPtr[1], name);
     }
 
-  }
+    assert(exprIntNode->type == INTEGER_NUMBER_VALUE
+        || exprIntNode->type == ID_VALUE
+        || exprIntNode->type == FUNCTION_VALUE);
 
+    int valToReturn = 0;
+
+    if(exprIntNode->type == INTEGER_NUMBER_VALUE) {
+        valToReturn = exprIntNode->value.intVal;
+    }
+    else if(exprIntNode->type == ID_VALUE) {
+        struct nodoTSF * currIdFunc = retrieveFromFunSymbolTable(name);
+        struct nodoTS * currNode = retrieveFromTsl(exprIntNode->value.idName, currIdFunc->tsl);
+        assert(currNode->type == INTEGER_NUMBER_VALUE);
+        valToReturn = currNode->value.intVal;
+    }
+
+    return valToReturn;
 }
 
-void func_print(ASR * printNode){
-  assert(printNode->arrPtr[0] != NULL);
+int func_exprInt(ASR * exprIntNode) {
+    assert(exprIntNode != NULL);
 
-  if(printNode->arrPtr[0]->type == INTEGER_NUMBER_VALUE){
-
-    printf("%d\n", printNode->arrPtr[0]->value.intVal);
-  }
-  else if(printNode->arrPtr[0]->type == FLOATING_POINT_NUMBER_VALUE){
-    printf("%.2f\n", printNode->arrPtr[0]->value.doubleVal);
-  } else if(printNode->arrPtr[0]->parentNodeType == EXPR
-    || printNode->arrPtr[0]->parentNodeType == TERM
-    || printNode->arrPtr[0]->parentNodeType == FACTOR){
-      //printf("yupiyupiyupo\n");
-
-    if(printNode->arrPtr[0]->type == FUNCTION_VALUE){
-
-      func_func(printNode->arrPtr[0]);
-
-
-      struct nodoTSF * currIdFunc = retrieveFromFunSymbolTable(currentFuncName);
-
-      if(currIdFunc->returnType == INTEGER_NUMBER_VALUE){
-        printf("%d\n", currIdFunc->value.intVal);
-      } else {
-        assert(currIdFunc->returnType == FLOATING_POINT_NUMBER_VALUE);
-        printf("%lf\n", currIdFunc->value.doubleVal);
-      }
+    if(exprIntNode->type == PLUS) {
+        return func_exprInt(exprIntNode->arrPtr[0])
+        + func_exprInt(exprIntNode->arrPtr[1]);
     }
-      // As we know that this is a function, then we know that this symbol must exist in the symbol table
-      // of the main function, so directly call the auxiliary method that looks in that specific symbol table.
-      /*struct SymbolTableNode* currFunc = auxRetrieveFromSymbolTable(printNode->arrPtr[0]->value.idName, mainFunctionSymbolTableHead);
+    else if(exprIntNode->type == MINUS){
+        return func_exprInt(exprIntNode->arrPtr[0])
+        - func_exprInt(exprIntNode->arrPtr[1]);
+    }
+    else if(exprIntNode->type == STAR) {
+        return func_exprInt(exprIntNode->arrPtr[0])
+        * func_exprInt(exprIntNode->arrPtr[1]);
+    }
+    else if(exprIntNode->type == FORWARD_SLASH) {
+        return func_exprInt(exprIntNode->arrPtr[0])
+        / func_exprInt(exprIntNode->arrPtr[1]);
+    }
 
-      if(currFunc->returnType == INTEGER_NUMBER_VALUE){
+    assert(exprIntNode->type == INTEGER_NUMBER_VALUE
+        || exprIntNode->type == ID_VALUE
+        || exprIntNode->type == FUNCTION_VALUE);
 
-        // printf("%d\n", currFunc->value.intVal);
-        printf("%d\n", ptrFunctionCallStackTop->value.intVal);
-      }
-      else{
+    int valToReturn = 0;
 
-        assert(currFunc->returnType == FLOATING_POINT_NUMBER_VALUE);
-        // printf("%lf\n", currFunc->value.doubleVal);
-        printf("%lf\n", ptrFunctionCallStackTop->value.doubleVal);
-      }
+    if(exprIntNode->type == INTEGER_NUMBER_VALUE) {
+        valToReturn = exprIntNode->value.intVal;
+    }
+    else if(exprIntNode->type == ID_VALUE) {
+        struct nodoTS * currNode = retrieveFromSymbolTable(exprIntNode->value.idName);
+        assert(currNode->type == INTEGER_NUMBER_VALUE);
+        valToReturn = currNode->value.intVal;
+    }
 
-      popFunctionCallToStack();
-    }*/
-    else{
+    return valToReturn;
+}
 
-      if(funcRunning == 0){
-        if(isIntegerExpr(printNode->arrPtr[0])){
+double func_exprDoubleFunc(ASR * exprDoubleNode, char * name) {
+    // If we enter an EXPR node, we must at least one term.
+    assert(exprDoubleNode != NULL);
 
-          printf("%d\n", func_exprInt(printNode->arrPtr[0]));
+    if(exprDoubleNode->type == PLUS) {
+        return func_exprDoubleFunc(exprDoubleNode->arrPtr[0], name)
+        + func_exprDoubleFunc(exprDoubleNode->arrPtr[1], name);
+    }
+    else if(exprDoubleNode->type == MINUS) {
+        return func_exprDoubleFunc(exprDoubleNode->arrPtr[0], name)
+        - func_exprDoubleFunc(exprDoubleNode->arrPtr[1], name);
+    }
+    else if(exprDoubleNode->type == STAR) {
+        return func_exprDoubleFunc(exprDoubleNode->arrPtr[0], name)
+        * func_exprDoubleFunc(exprDoubleNode->arrPtr[1], name);
+    }
+    else if(exprDoubleNode->type == FORWARD_SLASH) {
+        return func_exprDoubleFunc(exprDoubleNode->arrPtr[0], name)
+        / func_exprDoubleFunc(exprDoubleNode->arrPtr[1], name);
+    }
+
+    assert(exprDoubleNode->type == ID_VALUE
+        || exprDoubleNode-> type == FLOATING_POINT_NUMBER_VALUE
+        || exprDoubleNode-> type == FUNCTION_VALUE);
+
+    double valToReturn = 0;
+
+    if(exprDoubleNode->type == FLOATING_POINT_NUMBER_VALUE) {
+        valToReturn = exprDoubleNode->value.doubleVal;
+    }
+    else if(exprDoubleNode->type == ID_VALUE) {
+        struct nodoTSF * currIdFunc = retrieveFromFunSymbolTable(name);
+        struct nodoTS * currNode = retrieveFromTsl(exprDoubleNode->value.idName, currIdFunc->tsl);
+        assert(currNode->type == FLOATING_POINT_NUMBER_VALUE);
+        valToReturn = currNode->value.doubleVal;
+    }
+
+    return valToReturn;
+}
+
+
+
+double func_exprDouble(ASR * exprDoubleNode) {
+    assert(exprDoubleNode != NULL);
+
+    if(exprDoubleNode->type == PLUS) {
+        return func_exprDouble(exprDoubleNode->arrPtr[0])
+        + func_exprDouble(exprDoubleNode->arrPtr[1]);
+    }
+    else if(exprDoubleNode->type == MINUS) {
+        return func_exprDouble(exprDoubleNode->arrPtr[0])
+        - func_exprDouble(exprDoubleNode->arrPtr[1]);
+    }
+    else if(exprDoubleNode->type == STAR) {
+        return func_exprDouble(exprDoubleNode->arrPtr[0])
+        * func_exprDouble(exprDoubleNode->arrPtr[1]);
+    }
+    else if(exprDoubleNode->type == FORWARD_SLASH) {
+        return func_exprDouble(exprDoubleNode->arrPtr[0])
+        / func_exprDouble(exprDoubleNode->arrPtr[1]);
+    }
+
+    assert(exprDoubleNode->type == ID_VALUE
+        || exprDoubleNode-> type == FLOATING_POINT_NUMBER_VALUE
+        || exprDoubleNode-> type == FUNCTION_VALUE);
+
+    double valToReturn = 0;
+
+    if(exprDoubleNode->type == FLOATING_POINT_NUMBER_VALUE) {
+        valToReturn = exprDoubleNode->value.doubleVal;
+    }
+    else if(exprDoubleNode->type == ID_VALUE) {
+
+        struct nodoTS * currNode = retrieveFromSymbolTable(exprDoubleNode->value.idName);
+        assert(currNode->type == FLOATING_POINT_NUMBER_VALUE);
+        valToReturn = currNode->value.doubleVal;
+    }
+
+    return valToReturn;
+}
+
+
+int func_expressionFunc(ASR* nodeExpr) {
+    assert(nodeExpr->arrPtr[0] != NULL);
+    assert(nodeExpr->arrPtr[1] != NULL);
+
+    if(isIntegerExprFunc(nodeExpr->arrPtr[0], currentFuncName)) {
+        assert(isIntegerExpr(nodeExpr->arrPtr[1]));
+        int intExpresionLeftSide = func_exprIntFunc(nodeExpr->arrPtr[0], currentFuncName);
+        int intExpresionRightSide = func_exprIntFunc(nodeExpr->arrPtr[1], currentFuncName);
+
+        switch(nodeExpr->type) {
+            case LT:
+            return intExpresionLeftSide < intExpresionRightSide;
+
+            case GT:
+            return intExpresionLeftSide > intExpresionRightSide;
+
+            case EQ:
+            return intExpresionLeftSide == intExpresionRightSide;
+
+            case LEQ:
+            return intExpresionLeftSide <= intExpresionRightSide;
+
+            case GEQ:
+            return intExpresionLeftSide >= intExpresionRightSide;
         }
-        else{
+    }
+    else {
+        assert(isFloatingPointExprFunc(nodeExpr->arrPtr[0], currentFuncName));
+        assert(isFloatingPointExprFunc(nodeExpr->arrPtr[1], currentFuncName));
 
-          assert(isFloatingPointExpr(printNode->arrPtr[0]));
-          printf("%lf\n", func_exprDouble(printNode->arrPtr[0]));
+        double doubleExpresionLeftSide = func_exprDoubleFunc(nodeExpr->arrPtr[0], currentFuncName);
+        int doubleExpresionRightSide = func_exprDoubleFunc(nodeExpr->arrPtr[1], currentFuncName);
+
+        switch(nodeExpr->type) {
+            case LT:
+            return doubleExpresionLeftSide < doubleExpresionRightSide;
+
+            case GT:
+            return doubleExpresionLeftSide > doubleExpresionRightSide;
+
+            case EQ:
+            return doubleExpresionLeftSide == doubleExpresionRightSide;
+
+            case LEQ:
+            return doubleExpresionLeftSide <= doubleExpresionRightSide;
+
+            case GEQ:
+            return doubleExpresionLeftSide >= doubleExpresionRightSide;
         }
-      } else if(funcRunning == 1){
+    }
 
-        if(isIntegerExprFunc(printNode->arrPtr[0], currentFuncName)){
+    assert(NULL);
+    return -1;
+}
 
-          printf("%d\n", func_exprIntFunc(printNode->arrPtr[0], currentFuncName));
+
+int func_expression(ASR* nodeExpr) {
+    assert(nodeExpr->arrPtr[0] != NULL);
+    assert(nodeExpr->arrPtr[1] != NULL);
+
+    if(isIntegerExpr(nodeExpr->arrPtr[0])) {
+        assert(isIntegerExpr(nodeExpr->arrPtr[1]));
+        int intExpresionLeftSide = func_exprInt(nodeExpr->arrPtr[0]);
+        int intExpresionRightSide = func_exprInt(nodeExpr->arrPtr[1]);
+
+        switch(nodeExpr->type) {
+            case LT:
+            return intExpresionLeftSide < intExpresionRightSide;
+
+            case GT:
+            return intExpresionLeftSide > intExpresionRightSide;
+
+            case EQ:
+            return intExpresionLeftSide == intExpresionRightSide;
+
+            case LEQ:
+            return intExpresionLeftSide <= intExpresionRightSide;
+
+            case GEQ:
+            return intExpresionLeftSide >= intExpresionRightSide;
         }
-        else{
+    }
+    else {
+        assert(isFloatingPointExpr(nodeExpr->arrPtr[0]));
+        assert(isFloatingPointExpr(nodeExpr->arrPtr[1]));
 
-          assert(isFloatingPointExprFunc(printNode->arrPtr[0], currentFuncName));
-          printf("%lf\n", func_exprDoubleFunc(printNode->arrPtr[0], currentFuncName));
+        double doubleExpresionLeftSide = func_exprDouble(nodeExpr->arrPtr[0]);
+        int doubleExpresionRightSide = func_exprDouble(nodeExpr->arrPtr[1]);
+
+        switch(nodeExpr->type) {
+            case LT:
+            return doubleExpresionLeftSide < doubleExpresionRightSide;
+
+            case GT:
+            return doubleExpresionLeftSide > doubleExpresionRightSide;
+
+            case EQ:
+            return doubleExpresionLeftSide == doubleExpresionRightSide;
+
+            case LEQ:
+            return doubleExpresionLeftSide <= doubleExpresionRightSide;
+
+            case GEQ:
+            return doubleExpresionLeftSide >= doubleExpresionRightSide;
+        }
+    }
+
+    assert(NULL);
+    return -1;
+}
+
+int readInt() {
+    int intVal = -1;
+    printf("escribe tu entero: ");
+    int scanfReturnValue = scanf("%d", &intVal);
+    assert(scanfReturnValue > 0);
+    return intVal;
+}
+
+double readDouble() {
+    double doubleVal = -1.0;
+    printf("Escribe tu numero de punto flotante: ");
+    int scanfReturnValue = scanf("%lf", &doubleVal);
+    assert(scanfReturnValue > 0);
+    return doubleVal;
+}
+
+void printNodeType(int type, char* label) {
+    // If our names array contains an entry for this type
+    if(type >= 0 && type < sizeof(SyntaxTreeNodeTypeName)) {
+        printf("%s: %s\n", label, SyntaxTreeNodeTypeName[type]);
+    }
+    else {
+        printf("%s: %d\n", label, type);
+    }
+}
+
+void preTreePrinting(ASR* node, char* nombre) {
+    printf("###################### INICIO ARBOL SINTACTICO REDUCIDO DE LA FUNCION %s #####################\n\n", nombre);
+    printTree(node);
+    printf("###################### FIN ARBOL SINTACTICO REDUCIDO DE LA FUNCION %s #####################\n\n", nombre);
+}
+
+void printTree(ASR * node) {
+    if(node == NULL) return;
+
+    printNodeType(node->type, "type");
+    printNodeType(node->parentNodeType, "parentNodeType");
+
+    if(node->type == INTEGER_NUMBER_VALUE) {
+        printf("Node value = %d\n", node->value.intVal);
+    }
+    else if(node->type == ID_VALUE) {
+        printf("Node value = %s\n", node->value.idName);
+    }
+    else if(node->type == FLOATING_POINT_NUMBER_VALUE) {
+        printf("Node value = %f\n", node->value.doubleVal);
+    }
+    else if(node->type == FUNCTION_VALUE) {
+        printf("Node value = %s\n", node->value.idName);
+    }
+
+    int i = 0;
+    printf("\n");
+
+    for(i = 0; i < 4; i++)
+        printTree(node->arrPtr[i]);
+}
+
+int traverseTree(ASR * node, int c) {
+    if(!node) return 0;
+    int count = 0;
+
+    if(c <= 1)
+        count += (node->type == PARAMETER_VALUE);
+
+    for(int i = 0; i < 4; i++){
+        count += traverseTree(node->arrPtr[i], c + (node->type == PARAMETER_VALUE));
+    }
+
+    return count;
+}
+
+void obtainType(struct nodoTS * tsl) {
+    struct nodoTS * ptr = tsl;
+
+    while(ptr != NULL) {
+        if(ptr->type == INTEGER_NUMBER_VALUE) printf("(int, %d) ",ptr->value.intVal);
+        else if(ptr->type == FLOATING_POINT_NUMBER_VALUE) printf("(float, %.2f) ", ptr->value.doubleVal);
+
+        ptr = ptr->next;
+    }
+}
+
+ASR * getNextPassedParameter(ASR ** ptrPtrFuncNodeSubStree) {
+    assert(*ptrPtrFuncNodeSubStree);
+    ASR * ptrNextPassedParameter = NULL;
+
+    if((*ptrPtrFuncNodeSubStree)->type == FUNCTION_VALUE) {
+        assert((*ptrPtrFuncNodeSubStree)->arrPtr[0]);
+        ptrNextPassedParameter = (*ptrPtrFuncNodeSubStree)->arrPtr[0]->arrPtr[0];
+    }
+    else {
+        assert((*ptrPtrFuncNodeSubStree)->type == PARAMETER_VALUE);
+        ptrNextPassedParameter = (*ptrPtrFuncNodeSubStree)->arrPtr[0];
+    }
+
+    (*ptrPtrFuncNodeSubStree) = (*ptrPtrFuncNodeSubStree)->arrPtr[0]->arrPtr[1];
+    assert(ptrNextPassedParameter);
+    return ptrNextPassedParameter;
+}
+
+int tslLength(struct nodoTS * tsl) {
+    struct nodoTS * ptr = tsl;
+    int tslL = 0;
+
+    while(ptr != NULL) {
+        tslL++;
+        ptr = ptr->next;
+    }
+
+    return tslL;
+}
+
+void moveTslForward(struct nodoTS ** ptrPtrTslHead, int moves) {
+    for(int i = 0; i < moves; i++) {
+        *ptrPtrTslHead = (*ptrPtrTslHead)->next;
+    }
+}
+
+void func_func(ASR * nodeFunc) {
+    struct nodoTSF * currFunc = retrieveFromFunSymbolTable(nodeFunc->value.idName);
+    currentFuncName = nodeFunc->value.idName;
+    assert(currFunc != NULL);
+    int formalParams = currFunc->numParams;
+    int amountOfParamsPassed = traverseTree(nodeFunc, 0);
+    assert(formalParams == amountOfParamsPassed);
+    int functionSymbolTableLength = tslLength(currFunc->tsl);
+    struct nodoTS * currParamPassed = NULL;
+    ASR* ptrFuncNodeSubTree = nodeFunc;
+    ASR * paramsPassed = NULL;
+    currParamPassed = currFunc->tsl;
+    moveTslForward(&currParamPassed, functionSymbolTableLength - formalParams);
+
+    for(int i = 0; i < amountOfParamsPassed; i++) {
+        paramsPassed = getNextPassedParameter(&ptrFuncNodeSubTree);
+        assert(paramsPassed);
+        assert(currParamPassed);
+
+        assert(isIntegerExpr(paramsPassed) && currParamPassed->type == INTEGER_NUMBER_VALUE);
+
+        currParamPassed = currParamPassed->next;
+    }
+
+    struct nodoTS * currParamValues = NULL;
+    ASR* ptrFuncNodeTree = nodeFunc;
+    ASR * paramsValue = NULL;
+
+    currParamValues = currFunc->tsl;
+    moveTslForward(&currParamValues, functionSymbolTableLength - formalParams);
+    for(int i = 0; i < amountOfParamsPassed; i++) {
+        paramsPassed = getNextPassedParameter(&ptrFuncNodeTree);
+
+        if(currParamValues->type == INTEGER_NUMBER_VALUE) {
+            currParamValues->value.intVal = func_exprInt(paramsPassed);
+        }
+        else if(currParamValues->type = FLOATING_POINT_NUMBER_VALUE) {
+            currParamValues->value.doubleVal = func_exprDouble(paramsPassed);
         }
 
-        //funcRunning = 0;
-      }
+        currParamValues = currParamValues->next;
     }
-  }
+
+    struct nodoTSF * funcSymbol = retrieveFromFunSymbolTable(nodeFunc->value.idName);
+    funcRunning = 1;
+    interpreta(funcSymbol->cuerpo);
 }
 
-  void func_assign(ASR * setNode){
+void func_read(ASR * nodeRead) {
+    assert(nodeRead->arrPtr[0] != NULL);
+    if(funcRunning == 0) {
+        struct nodoTS * currNode = retrieveFromSymbolTable(nodeRead->arrPtr[0]->value.idName);
+        int valueToSet;
+        double doubleValueToSet;
 
-    // Each set statement must contain both the corresponding
-    // id and the desired value
+        switch (currNode->type) {
+            case INTEGER_NUMBER_VALUE:
+                valueToSet = readInt();
+                setIntValueToSymbol(currNode->nombre,valueToSet);
+                assert(valueToSet == currNode->value.intVal);
+                break;
+            case FLOATING_POINT_NUMBER_VALUE:
+                doubleValueToSet = readDouble();
+                setDoubleValueToSymbol(currNode->nombre, doubleValueToSet);
+                assert(doubleValueToSet == currNode->value.doubleVal);
+                break;
+        }
+    } else if(funcRunning == 1) {
+
+        struct nodoTSF * currIdFunc = retrieveFromFunSymbolTable(currentFuncName);
+        struct nodoTS * currNode = retrieveFromTsl(nodeRead->arrPtr[0]->value.idName, currIdFunc->tsl);
+
+        int valueToSet;
+        double doubleValueToSet;
+
+        switch (currNode->type) {
+            case INTEGER_NUMBER_VALUE:
+            valueToSet = readInt();
+            setIntValueToSymbolFunc(currNode->nombre,valueToSet, currentFuncName);
+            assert(valueToSet == currNode->value.intVal);
+            break;
+            case FLOATING_POINT_NUMBER_VALUE:
+            doubleValueToSet = readDouble();
+            setDoubleValueToSymbolFunc(currNode->nombre, doubleValueToSet, currentFuncName);
+            assert(doubleValueToSet == currNode->value.doubleVal);
+            break;
+        }
+    }
+}
+
+void func_print(ASR * printNode) {
+    assert(printNode->arrPtr[0] != NULL);
+
+    if(printNode->arrPtr[0]->type == INTEGER_NUMBER_VALUE) {
+        printf("%d\n", printNode->arrPtr[0]->value.intVal);
+    }
+    else if(printNode->arrPtr[0]->type == FLOATING_POINT_NUMBER_VALUE) {
+        printf("%.2f\n", printNode->arrPtr[0]->value.doubleVal);
+    } else if(printNode->arrPtr[0]->parentNodeType == EXPR
+        || printNode->arrPtr[0]->parentNodeType == TERM
+        || printNode->arrPtr[0]->parentNodeType == FACTOR) {
+
+        if(printNode->arrPtr[0]->type == FUNCTION_VALUE) {
+            func_func(printNode->arrPtr[0]);
+            struct nodoTSF * currIdFunc = retrieveFromFunSymbolTable(currentFuncName);
+
+            if(currIdFunc->returnType == INTEGER_NUMBER_VALUE) {
+                printf("%d\n", currIdFunc->value.intVal);
+            } else {
+                assert(currIdFunc->returnType == FLOATING_POINT_NUMBER_VALUE);
+                printf("%lf\n", currIdFunc->value.doubleVal);
+            }
+        } else {
+            if(funcRunning == 0) {
+                if(isIntegerExpr(printNode->arrPtr[0])) {
+                    printf("%d\n", func_exprInt(printNode->arrPtr[0]));
+                }
+                else {
+                    assert(isFloatingPointExpr(printNode->arrPtr[0]));
+                    printf("%lf\n", func_exprDouble(printNode->arrPtr[0]));
+                }
+            } else if(funcRunning == 1) {
+                if(isIntegerExprFunc(printNode->arrPtr[0], currentFuncName)){
+                    printf("%d\n", func_exprIntFunc(printNode->arrPtr[0], currentFuncName));
+                } else {
+                    assert(isFloatingPointExprFunc(printNode->arrPtr[0], currentFuncName));
+                    printf("%lf\n", func_exprDoubleFunc(printNode->arrPtr[0], currentFuncName));
+                }
+            }
+        }
+    }
+}
+
+void func_assign(ASR * setNode) {
     assert(setNode->arrPtr[0] != NULL);
     assert(setNode->arrPtr[1] != NULL);
+
     if(funcRunning == 0){
-      // printf("symbol to retrieve: %s\n", setNode->arrPtr[0]->value.idName);
-      struct nodoTS * currNode = retrieveFromSymbolTable(setNode->arrPtr[0]->value.idName);
+        struct nodoTS * currNode = retrieveFromSymbolTable(setNode->arrPtr[0]->value.idName);
+        assert(currNode != NULL);
+        int exprValueToSet;
+        double exprDoubleValueToSet;
 
-      assert(currNode != NULL);
+        if(setNode->arrPtr[1]->type != FUNCTION_VALUE) {
+            switch(currNode->type) {
+                case INTEGER_NUMBER_VALUE:
+                    exprValueToSet = func_exprInt(setNode->arrPtr[1]);
+                    setIntValueToSymbol(currNode->nombre, exprValueToSet);
+                    assert(exprValueToSet == currNode->value.intVal);
+                    break;
+                case FLOATING_POINT_NUMBER_VALUE:
+                    exprDoubleValueToSet = func_exprDouble(setNode->arrPtr[1]);
+                    setDoubleValueToSymbol(currNode->nombre, exprDoubleValueToSet);
+                    assert(exprDoubleValueToSet == currNode->value.doubleVal);
+                    break;
+            }
+        } else if(setNode->arrPtr[1]->type == FUNCTION_VALUE) {
+            switch (currNode->type) {
+                case INTEGER_NUMBER_VALUE:
+                func_func(setNode->arrPtr[1]);
+                struct nodoTSF * currIdFunc = retrieveFromFunSymbolTable(currentFuncName);
+                assert(currIdFunc->returnType == INTEGER_NUMBER_VALUE);
+                exprValueToSet = currIdFunc->value.intVal;
+                setIntValueToSymbol(currNode->nombre, exprValueToSet);
+                assert(exprValueToSet == currNode->value.intVal);
+                break;
 
-      int exprValueToSet;
-      double exprDoubleValueToSet;
+                case FLOATING_POINT_NUMBER_VALUE:
+                func_func(setNode->arrPtr[1]);
+                struct nodoTSF * currIdFunc2 = retrieveFromFunSymbolTable(currentFuncName);
+                assert(currIdFunc2->returnType == FLOATING_POINT_NUMBER_VALUE);
+                exprDoubleValueToSet = currIdFunc2->value.doubleVal;
+                setDoubleValueToSymbol(currNode->nombre, exprDoubleValueToSet);
+                assert(exprDoubleValueToSet == currNode->value.doubleVal);
+                break;
+            }
+        }
+    } else if(funcRunning == 1) {
+        struct nodoTSF * currIdFunc = retrieveFromFunSymbolTable(currentFuncName);
+        struct nodoTS * currNode = retrieveFromTsl(setNode->arrPtr[0]->value.idName, currIdFunc->tsl);
+        assert(currNode != NULL);
+        int exprValueToSet;
+        double exprDoubleValueToSet;
 
-      switch(currNode->type){
-
-        case INTEGER_NUMBER_VALUE:
-        exprValueToSet = func_exprInt(setNode->arrPtr[1]);
-        setIntValueToSymbol(currNode->nombre, exprValueToSet);
-        //printSymbolTableNode(currNode);
-        assert(exprValueToSet == currNode->value.intVal);
-        break;
-
-        case FLOATING_POINT_NUMBER_VALUE:
-        exprDoubleValueToSet = func_exprDouble(setNode->arrPtr[1]);
-        setDoubleValueToSymbol(currNode->nombre, exprDoubleValueToSet);
-        //printSymbolTableNode(currNode);
-        assert(exprDoubleValueToSet == currNode->value.doubleVal);
-        break;
-
-      }
-    } else if(funcRunning == 1){
-
-      struct nodoTSF * currIdFunc = retrieveFromFunSymbolTable(currentFuncName);
-      struct nodoTS * currNode = retrieveFromTsl(setNode->arrPtr[0]->value.idName, currIdFunc->tsl);
-
-    //  printf("current sybbol type %d\n", currNode->type);
-
-      assert(currNode != NULL);
-
-      int exprValueToSet;
-      double exprDoubleValueToSet;
-
-      switch(currNode->type){
-
-        case INTEGER_NUMBER_VALUE:
-        exprValueToSet = func_exprIntFunc(setNode->arrPtr[1], currentFuncName);
-        setIntValueToSymbolFunc(currNode->nombre, exprValueToSet, currentFuncName);
-        //printSymbolTableNode(currNode);
-        assert(exprValueToSet == currNode->value.intVal);
-        break;
-
-        case FLOATING_POINT_NUMBER_VALUE:
-        exprDoubleValueToSet = func_exprDoubleFunc(setNode->arrPtr[1], currentFuncName);
-        setDoubleValueToSymbolFunc(currNode->nombre, exprDoubleValueToSet, currentFuncName);
-        //printSymbolTableNode(currNode);
-        assert(exprDoubleValueToSet == currNode->value.doubleVal);
-        break;
-
-      }
+        switch(currNode->type) {
+            case INTEGER_NUMBER_VALUE:
+                exprValueToSet = func_exprIntFunc(setNode->arrPtr[1], currentFuncName);
+                setIntValueToSymbolFunc(currNode->nombre, exprValueToSet, currentFuncName);
+                assert(exprValueToSet == currNode->value.intVal);
+                break;
+            case FLOATING_POINT_NUMBER_VALUE:
+                exprDoubleValueToSet = func_exprDoubleFunc(setNode->arrPtr[1], currentFuncName);
+                setDoubleValueToSymbolFunc(currNode->nombre, exprDoubleValueToSet, currentFuncName);
+                assert(exprDoubleValueToSet == currNode->value.doubleVal);
+                break;
+        }
     }
-  }
+}
 
-
-
-
-  void func_if(ASR * nodeIf){
-
+void func_if(ASR * nodeIf) {
     assert(nodeIf->arrPtr[0] != NULL);
-    if(funcRunning == 0){
-    if(func_expression(nodeIf->arrPtr[0])){
-      if(nodeIf->arrPtr[1] != NULL){
-        interpreta(nodeIf->arrPtr[1]);
-      }
+    if(funcRunning == 0) {
+        if(func_expression(nodeIf->arrPtr[0])) {
+            if(nodeIf->arrPtr[1] != NULL) {
+                interpreta(nodeIf->arrPtr[1]);
+            }
+        }
+    } else if(funcRunning == 1) {
+        if(func_expressionFunc(nodeIf->arrPtr[0])) {
+            if(nodeIf->arrPtr[1] != NULL) {
+                interpreta(nodeIf->arrPtr[1]);
+            }
+        }
     }
-  } else if(funcRunning == 1){
-    if(func_expressionFunc(nodeIf->arrPtr[0])){
-      if(nodeIf->arrPtr[1] != NULL){
-        interpreta(nodeIf->arrPtr[1]);
-      }
-    }
-  }
-  }
+}
 
-  void func_ifElse(ASR * nodeIfElse){
-
+void func_ifElse(ASR * nodeIfElse) {
     assert(nodeIfElse->arrPtr[0] != NULL);
-    if(funcRunning == 0){
-    if(func_expression(nodeIfElse->arrPtr[0])){
-      interpreta(nodeIfElse->arrPtr[1]);
-    } else {
-      interpreta(nodeIfElse->arrPtr[2]);
+    if(funcRunning == 0) {
+        if(func_expression(nodeIfElse->arrPtr[0])) {
+            interpreta(nodeIfElse->arrPtr[1]);
+        } else {
+            interpreta(nodeIfElse->arrPtr[2]);
+        }
+    } else if(funcRunning == 1) {
+        if(func_expressionFunc(nodeIfElse->arrPtr[0])) {
+            interpreta(nodeIfElse->arrPtr[1]);
+        } else {
+            interpreta(nodeIfElse->arrPtr[2]);
+        }
     }
-  } else if(funcRunning == 1){
-    if(func_expressionFunc(nodeIfElse->arrPtr[0])){
-      interpreta(nodeIfElse->arrPtr[1]);
-    } else {
-      interpreta(nodeIfElse->arrPtr[2]);
-    }
-  }
-  }
+}
 
-  void func_while(ASR * nodeWhile){
+void func_while(ASR * nodeWhile) {
     assert(nodeWhile->arrPtr[0] != NULL);
-    if(funcRunning == 0){
-    while(func_expression(nodeWhile->arrPtr[0])){
-      interpreta(nodeWhile->arrPtr[1]);
+    if(funcRunning == 0) {
+        while(func_expression(nodeWhile->arrPtr[0])) {
+            interpreta(nodeWhile->arrPtr[1]);
+        }
+    } else if(funcRunning == 1) {
+        while(func_expressionFunc(nodeWhile->arrPtr[0])) {
+            interpreta(nodeWhile->arrPtr[1]);
+        }
     }
-  } else if(funcRunning == 1){
-    while(func_expressionFunc(nodeWhile->arrPtr[0])){
-      interpreta(nodeWhile->arrPtr[1]);
-    }
-  }
-  }
+}
 
-  void func_for(ASR * nodeFor){
+void func_for(ASR * nodeFor) {
 
     assert(nodeFor->arrPtr[0] != NULL);
     assert(nodeFor->arrPtr[1] != NULL);
     assert(nodeFor->arrPtr[2] != NULL);
 
-    if(funcRunning == 0){
-    func_assign(nodeFor->arrPtr[0]);
+    if(funcRunning == 0) {
+        func_assign(nodeFor->arrPtr[0]);
 
-    while(func_expression(nodeFor->arrPtr[1])){
-      interpreta(nodeFor->arrPtr[3]);
-      func_assign(nodeFor->arrPtr[2]);
+        while(func_expression(nodeFor->arrPtr[1])) {
+            interpreta(nodeFor->arrPtr[3]);
+            func_assign(nodeFor->arrPtr[2]);
+        }
+    } else if(funcRunning == 1) {
+        func_assign(nodeFor->arrPtr[0]);
+        while(func_expressionFunc(nodeFor->arrPtr[1])) {
+            interpreta(nodeFor->arrPtr[3]);
+            func_assign(nodeFor->arrPtr[2]);
+        }
     }
-  } else if(funcRunning == 1){
-    func_assign(nodeFor->arrPtr[0]);
-    while(func_expressionFunc(nodeFor->arrPtr[1])){
-      interpreta(nodeFor->arrPtr[3]);
-      func_assign(nodeFor->arrPtr[2]);
-    }
-  }
-  }
- //preguntarle al profe a que se refefiere con el REPEAT
+}
 
-  void func_repeat(ASR * nodeRepeat){
-    //assert(nodeRepeat->arrPtr[0] != NULL);
+void func_repeat(ASR * nodeRepeat) {
     assert(nodeRepeat->arrPtr[1] != NULL);
-    if(funcRunning == 0){
-    do {
-      interpreta(nodeRepeat->arrPtr[0]);
-    } while(func_expression(nodeRepeat->arrPtr[1]));
-  } else if(funcRunning == 1){
-    do {
-      interpreta(nodeRepeat->arrPtr[0]);
-    } while(func_expressionFunc(nodeRepeat->arrPtr[1]));
-  }
-  }
+    if(funcRunning == 0) {
+        do {
+            interpreta(nodeRepeat->arrPtr[0]);
+        } while(func_expression(nodeRepeat->arrPtr[1]));
+    } else if(funcRunning == 1) {
+        do {
+            interpreta(nodeRepeat->arrPtr[0]);
+        } while(func_expressionFunc(nodeRepeat->arrPtr[1]));
+    }
+}
 
-  void func_return(ASR * nodeReturn){
+void func_return(ASR * nodeReturn) {
     assert(nodeReturn->arrPtr[0] != NULL);
     struct nodoTSF * currIdFunc = retrieveFromFunSymbolTable(currentFuncName);
-    //printf("%d\n", currIdFunc->returnType);
+
     if (nodeReturn->arrPtr[0]->type == INTEGER_NUMBER_VALUE) {
-      assert(currIdFunc->returnType == INTEGER_NUMBER_VALUE);
-      currIdFunc->value.intVal = nodeReturn->arrPtr[0]->value.intVal;
-    } else if(nodeReturn->arrPtr[0]->type == FLOATING_POINT_NUMBER_VALUE){
-      assert(currIdFunc->returnType == FLOATING_POINT_NUMBER_VALUE);
-      currIdFunc->value.doubleVal = nodeReturn->arrPtr[0]->value.doubleVal;
-    } else if(nodeReturn->arrPtr[0]->parentNodeType == EXPR
-    || nodeReturn->arrPtr[0]->parentNodeType == TERM
-    || nodeReturn->arrPtr[0]->parentNodeType == FACTOR){
-      if(isIntegerExprFunc(nodeReturn->arrPtr[0], currentFuncName)){
         assert(currIdFunc->returnType == INTEGER_NUMBER_VALUE);
-        currIdFunc->value.intVal = func_exprIntFunc(nodeReturn->arrPtr[0], currentFuncName);
-      } else {
-        assert(isFloatingPointExprFunc(nodeReturn->arrPtr[0], currentFuncName));
+        currIdFunc->value.intVal = nodeReturn->arrPtr[0]->value.intVal;
+    } else if(nodeReturn->arrPtr[0]->type == FLOATING_POINT_NUMBER_VALUE) {
         assert(currIdFunc->returnType == FLOATING_POINT_NUMBER_VALUE);
-        currIdFunc->value.doubleVal = func_exprDoubleFunc(nodeReturn->arrPtr[0], currentFuncName);
-      }
+        currIdFunc->value.doubleVal = nodeReturn->arrPtr[0]->value.doubleVal;
+    } else if(nodeReturn->arrPtr[0]->parentNodeType == EXPR
+        || nodeReturn->arrPtr[0]->parentNodeType == TERM
+        || nodeReturn->arrPtr[0]->parentNodeType == FACTOR) {
+        if(isIntegerExprFunc(nodeReturn->arrPtr[0], currentFuncName)) {
+            assert(currIdFunc->returnType == INTEGER_NUMBER_VALUE);
+            currIdFunc->value.intVal = func_exprIntFunc(nodeReturn->arrPtr[0], currentFuncName);
+        } else {
+            assert(isFloatingPointExprFunc(nodeReturn->arrPtr[0], currentFuncName));
+            assert(currIdFunc->returnType == FLOATING_POINT_NUMBER_VALUE);
+            currIdFunc->value.doubleVal = func_exprDoubleFunc(nodeReturn->arrPtr[0], currentFuncName);
+        }
     }
-  }
 
- void interpreta(ASR * node){
+    funcRunning = 0;
+}
 
-   /*struct nodoTSF * funcSymbol = retrieveFromFunSymbolTable("add");
-   ASR * node = funcSymbol->cuerpo;*/
-   if(node == NULL)
-   return;
+void interpreta(ASR * node) {
+    if(node == NULL)
+    return;
 
-   switch (node->type) {
-     case PROGRAM: // CHECK
-     break;
+    switch (node->type) {
+        case PROGRAM:
+        break;
 
-     case PYC: // CHECK
-     break;
+        case PYC:
+        break;
 
-     case PYC_S: // CHECK
-     break;
+        case PYC_S:
+        break;
 
-     case PRINT: // CHECK
-     func_print(node);
-     break;
+        case PRINT:
+        func_print(node);
+        break;
 
-     case READ: // CHECK
-     func_read(node);
-     break;
+        case READ:
+        func_read(node);
+        break;
 
-     case SET: // CHECK
-     func_assign(node);
-     break;
+        case SET:
+        func_assign(node);
+        break;
 
-     case IF: // CHECK
-     func_if(node);
-     break;
+        case IF:
+        func_if(node);
+        break;
 
-     case IFELSE: // CHECK
-     func_ifElse(node);
-     break;
+        case IFELSE:
+        func_ifElse(node);
+        break;
 
-     case WHILE: // CHECK
-     func_while(node);
-     break;
+        case WHILE:
+        func_while(node);
+        break;
 
-     case FOR: // CHECK
-     func_for(node);
-     break;
+        case FOR:
+        func_for(node);
+        break;
 
-     case REPEAT: // CHECK
-     func_repeat(node);
-     break;
+        case REPEAT:
+        func_repeat(node);
+        break;
 
-     case RETURN:
-     func_return(node);
-     break;
-   }
-
-
-   if(node->type != IF
-    && node->type != IFELSE
-    && node->type != WHILE
-    && node->type != FOR){
-
-    int i;
-    for(i = 0; i < 4; i++)
-      interpreta(node->arrPtr[i]);
+        case RETURN:
+        func_return(node);
+        break;
     }
- }
+
+    if(node->type != IF &&
+        node->type != IFELSE &&
+        node->type != WHILE &&
+        node->type != FOR) {
+
+        int i;
+        for(i = 0; i < 4; i++)
+        interpreta(node->arrPtr[i]);
+    }
+}

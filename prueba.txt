@@ -1,15 +1,17 @@
 program bobo
 
-var t:int
+var x:int;
+var f:int
 
-
-fun add(cinco:int, seis:int): int
-var t: int
+fun doble(x:int):int
+var a:int
 begin
-t<-cinco+seis;
-return t*2
+a<-x*2;
+return a
 end
 
 begin
-print add(5,1)
+ read x;
+ f<-doble(x);
+ print f
 end
