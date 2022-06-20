@@ -4,16 +4,12 @@ var t:int
 
 
 fun add(cinco:int, seis:int): int
-
+var t: int
 begin
-repeat
-  begin
-    print cinco;
-    cinco<-cinco+2
-  end
-until (cinco<10)
+t<-cinco+seis;
+return t*2
 end
 
 begin
-print add(0,1)
+print add(5,1)
 end

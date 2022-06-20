@@ -143,6 +143,10 @@ struct nodoTSF {
   int numParams;
   struct nodoTS * tsl;
   ASR * cuerpo;
+  union {
+    int intVal;
+    double doubleVal;
+  } value;
   struct nodoTSF * next;
 };
 
@@ -1353,6 +1357,24 @@ ASR * getNextPassedParameter(ASR ** ptrPtrFuncNodeSubStree){
   return ptrNextPassedParameter;
 }
 
+int tslLength(struct nodoTS * tsl){
+  struct nodoTS * ptr = tsl;
+  int tslL = 0;
+
+  while(ptr != NULL){
+    tslL++;
+    ptr = ptr->next;
+  }
+  //printf("length of tsl = %d\n", tslL);
+  return tslL;
+}
+
+void moveTslForward(struct nodoTS ** ptrPtrTslHead, int moves){
+  for(int i = 0; i < moves; i++){
+    *ptrPtrTslHead = (*ptrPtrTslHead)->next;
+  }
+}
+
 
 void func_func(ASR * nodeFunc){
   struct nodoTSF * currFunc = retrieveFromFunSymbolTable(nodeFunc->value.idName);
@@ -1391,13 +1413,15 @@ void func_func(ASR * nodeFunc){
 
   //PART THAT ASSIGNS THE PARAMS PASSED TO THE LST OF THE FORMAL FUNCTION
 
+  int functionSymbolTableLength = tslLength(currFunc->tsl);
+  //printf("length of tsl:  %d\n", functionSymbolTableLength);
   struct nodoTS * currParamValues = NULL;
 
   ASR* ptrFuncNodeTree = nodeFunc;
   ASR * paramsValue = NULL;
 
   currParamValues = currFunc->tsl;
-
+  moveTslForward(&currParamValues, functionSymbolTableLength - formalParams);
   for(int i = 0; i < amountOfParamsPassed; i++){
     paramsPassed = getNextPassedParameter(&ptrFuncNodeTree);
   //  printf("value of param func %d\n", currParamPassed->value.intVal);
@@ -1488,6 +1512,15 @@ void func_print(ASR * printNode){
 
       func_func(printNode->arrPtr[0]);
 
+
+      struct nodoTSF * currIdFunc = retrieveFromFunSymbolTable(currentFuncName);
+
+      if(currIdFunc->returnType == INTEGER_NUMBER_VALUE){
+        printf("%d\n", currIdFunc->value.intVal);
+      } else {
+        assert(currIdFunc->returnType == FLOATING_POINT_NUMBER_VALUE);
+        printf("%lf\n", currIdFunc->value.doubleVal);
+      }
     }
       // As we know that this is a function, then we know that this symbol must exist in the symbol table
       // of the main function, so directly call the auxiliary method that looks in that specific symbol table.
@@ -1690,6 +1723,30 @@ void func_print(ASR * printNode){
   }
   }
 
+  void func_return(ASR * nodeReturn){
+    assert(nodeReturn->arrPtr[0] != NULL);
+    struct nodoTSF * currIdFunc = retrieveFromFunSymbolTable(currentFuncName);
+    //printf("%d\n", currIdFunc->returnType);
+    if (nodeReturn->arrPtr[0]->type == INTEGER_NUMBER_VALUE) {
+      assert(currIdFunc->returnType == INTEGER_NUMBER_VALUE);
+      currIdFunc->value.intVal = nodeReturn->arrPtr[0]->value.intVal;
+    } else if(nodeReturn->arrPtr[0]->type == FLOATING_POINT_NUMBER_VALUE){
+      assert(currIdFunc->returnType == FLOATING_POINT_NUMBER_VALUE);
+      currIdFunc->value.doubleVal = nodeReturn->arrPtr[0]->value.doubleVal;
+    } else if(nodeReturn->arrPtr[0]->parentNodeType == EXPR
+    || nodeReturn->arrPtr[0]->parentNodeType == TERM
+    || nodeReturn->arrPtr[0]->parentNodeType == FACTOR){
+      if(isIntegerExprFunc(nodeReturn->arrPtr[0], currentFuncName)){
+        assert(currIdFunc->returnType == INTEGER_NUMBER_VALUE);
+        currIdFunc->value.intVal = func_exprIntFunc(nodeReturn->arrPtr[0], currentFuncName);
+      } else {
+        assert(isFloatingPointExprFunc(nodeReturn->arrPtr[0], currentFuncName));
+        assert(currIdFunc->returnType == FLOATING_POINT_NUMBER_VALUE);
+        currIdFunc->value.doubleVal = func_exprDoubleFunc(nodeReturn->arrPtr[0], currentFuncName);
+      }
+    }
+  }
+
  void interpreta(ASR * node){
 
    /*struct nodoTSF * funcSymbol = retrieveFromFunSymbolTable("add");
@@ -1737,6 +1794,10 @@ void func_print(ASR * printNode){
 
      case REPEAT: // CHECK
      func_repeat(node);
+     break;
+
+     case RETURN:
+     func_return(node);
      break;
    }
 
