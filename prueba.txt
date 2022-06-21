@@ -1,17 +1,30 @@
 program bobo
 
 var x:int;
-var f:int
+var y:int
 
 fun doble(x:int):int
 var a:int
 begin
-a<-x*2;
-return a
+while(x<5)
+ begin
+  print x;
+  x<-x+1
+ end
+
+end
+
+
+fun triple(x:int):int
+var t:int
+begin
+t<-x*3;
+return t
 end
 
 begin
  read x;
- f<-doble(x);
- print f
+ y<-doble(x);
+ print x;
+ print y
 end

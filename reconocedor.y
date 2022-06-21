@@ -25,6 +25,7 @@
      int funcRunning = 0;
      char * currentFuncName;
 
+     //enum que contiene los nombres de los tipos de nodo del asr, para poder identificarlos mejor
      enum SyntaxTreeNodeType {
          PROGRAM,
          PYC,
@@ -68,6 +69,8 @@
          RETURN
      };
 
+     //arreglo con los nombres de los nodos del asr, esta lista y el enum deben estar sincronizados para su correcto
+     //funcionamiento
      char* SyntaxTreeNodeTypeName[] = {
          "PROGRAM",
          "PYC",
@@ -112,6 +115,7 @@
      };
 
 
+     //estructura del nodo Tabla de Simbolos con sus elementos como el nombre, el tipo y la union con sus posibles valores
      struct nodoTS {
          char * nombre;
          int type;
@@ -138,6 +142,9 @@
          ASR *next;
      };
 
+     //nodo del tipo funcion que nos permite mandar a llamar a las funciones desde el main y que guarda el valor de return
+     //PD: Bug con recursion y llamadas a funcion dentro de funciones que aun no se corrige
+
      struct nodoTSF {
          char * nombre;
          int returnType;
@@ -153,12 +160,13 @@
      };
 
 
+     //declaracion de las funciones del codigo
+
      extern int yylex();
      int yyerror(char const * s);
      ASR * nuevoNodo(int, double, char*, int, int, ASR*,ASR*,ASR*,ASR*,ASR*);
      extern char * yytext;
      extern FILE *yyin;
-     //void findID(char * id);
      struct nodoTS * insertID(char* id, int tipo);
      void insertFunc(char*, int, int, struct nodoTS*, ASR*);
      void insertIDFunc(struct nodoTS**, char*, int);
@@ -199,6 +207,8 @@
 %precedence ELSE
 %%
 
+
+//gramatica proporcionada en clase
 
 prog : RES_PROGRAM ID opt_decls opt_fun_decls BGN opt_stmts END  {
 						   ASR *nodoRoot;
@@ -402,6 +412,8 @@ void main(int argc, char * argv[]) {
     yyparse();
 }
 
+
+//funcion que nos ayuda a imprimir la tabla de simbolos global
 void printList() {
     struct nodoTS * ptr = head;
     printf("\n[ ");
@@ -414,6 +426,8 @@ void printList() {
 
     printf(" ] \n\n");
 }
+
+//funcion que imprime la tabla de simbolos local de cada funcion
 
 void printListTsl(struct nodoTS * ptr, char * nombre) {
     struct nodoTS * pointer = ptr;
@@ -430,6 +444,7 @@ void printListTsl(struct nodoTS * ptr, char * nombre) {
     printf("#################### FINAL DE LA TABLA DE SIMBOLO DE LA FUNCION %s  #########################\n\n", nombre);
 }
 
+//funcion que imprime la tabla de funciones del codigo
 void printListTsf() {
     struct nodoTSF * ptr = functionSymbolTableHead;
 
@@ -445,6 +460,8 @@ void printListTsf() {
 
 }
 
+
+//funcion que realiza la creacion de un nuevo nodo del arbol sintactico, recibe los posibles valores, el nombre y el tipo, asi como sus 4 apuntadores a sus hijos
 ASR * nuevoNodo(int iVal, double dVal, char* idName, int type, int parentNodeType, ASR * ptr1, ASR * ptr2, ASR * ptr3, ASR * ptr4, ASR * nextNode) {
     ASR * newNodePtr = (ASR *) malloc(sizeof(ASR));
     newNodePtr->type = type;
@@ -509,6 +526,9 @@ void insertIDFunc(struct nodoTS** tslHead, char * id, int tipo) {
     *tslHead = newNode;
 }
 
+
+//funciones auxiliares que nos ayudan a recuperar de cualquiera de las tablas de simbolos, el elemento buscado
+
 struct nodoTSF* retrieveFromFunSymbolTable(char * nombre) {
     struct nodoTSF *currPtr = functionSymbolTableHead;
 
@@ -521,6 +541,9 @@ struct nodoTSF* retrieveFromFunSymbolTable(char * nombre) {
 
     return NULL;
 }
+
+
+//funciones auxiliares que nos ayudan a recuperar de cualquiera de las tablas de simbolos, el elemento buscado
 
 struct nodoTS* auxRetrieveFromSymbolTable(char const *symbolName, struct nodoTS* symbolTableHead) {
     struct nodoTS *currPtr = symbolTableHead;
@@ -535,6 +558,9 @@ struct nodoTS* auxRetrieveFromSymbolTable(char const *symbolName, struct nodoTS*
     return NULL;
 }
 
+
+//funciones auxiliares que nos ayudan a recuperar de cualquiera de las tablas de simbolos, el elemento buscado
+
 struct nodoTS * retrieveFromTsl(char * simboloActual, struct nodoTS* headTsl) {
     struct nodoTS* currPtr = headTsl;
 
@@ -548,6 +574,9 @@ struct nodoTS * retrieveFromTsl(char * simboloActual, struct nodoTS* headTsl) {
     return NULL;
 }
 
+
+//funciones auxiliares que nos ayudan a recuperar de cualquiera de las tablas de simbolos, el elemento buscado
+
 struct nodoTS* retrieveFromSymbolTable(char const *symbolName) {
     struct nodoTS *currPtr = NULL;
 
@@ -556,6 +585,8 @@ struct nodoTS* retrieveFromSymbolTable(char const *symbolName) {
 
     return currPtr;
 }
+
+//funcion auxiliar que asigna los valores en la tabla de simbolos, de los valores int
 
 void setIntValueToSymbolFunc(char * symbolName, int newIntegerValue, char * name) {
     struct nodoTSF * currIdFunc = retrieveFromFunSymbolTable(name);
@@ -574,6 +605,9 @@ void setIntValueToSymbolFunc(char * symbolName, int newIntegerValue, char * name
     }
 }
 
+
+//funcion auxiliar que asigna los valores en la tabla de simbolos, de los valores int
+
 void setIntValueToSymbol(char const *symbolName, int newIntegerValue) {
     struct nodoTS *symbolPtr = retrieveFromSymbolTable(symbolName);
 
@@ -591,6 +625,9 @@ void setIntValueToSymbol(char const *symbolName, int newIntegerValue) {
     }
 }
 
+
+//funcion auxiliar que asigna los valores en la tabla de simbolos, de los valores double
+
 void setDoubleValueToSymbolFunc(char * symbolName, double newDoubleValue, char * name) {
     struct nodoTSF * currIdFunc = retrieveFromFunSymbolTable(name);
     struct nodoTS *symbolPtr = retrieveFromTsl(symbolName, currIdFunc->tsl);
@@ -605,6 +642,9 @@ void setDoubleValueToSymbolFunc(char * symbolName, double newDoubleValue, char *
     }
 }
 
+
+//funcion auxiliar que asigna los valores en la tabla de simbolos, de los valores double
+
 void setDoubleValueToSymbol(char const *symbolName, double newDoubleValue) {
     struct nodoTS *symbolPtr = retrieveFromSymbolTable(symbolName);
 
@@ -617,6 +657,8 @@ void setDoubleValueToSymbol(char const *symbolName, double newDoubleValue) {
         }
     }
 }
+
+//funcion que nos ayuda a comprobar los tipos de nuestras variables, contamos los elementos en sus subarboles y determinamos si son INT o FLOAT
 
 int computeSubTreeNodeTypeCount(int nodeType, ASR * node) {
     if(node == NULL) return 0;
@@ -640,6 +682,8 @@ int computeSubTreeNodeTypeCount(int nodeType, ASR * node) {
     return count;
 }
 
+//funcion que nos ayuda a comprobar los tipos de nuestras variables, contamos los elementos en sus subarboles y determinamos si son INT o FLOAT
+
 int computeSubTreeNodeTypeCountFunc(int nodeType, ASR * node, char * name) {
     if(node == NULL) return 0;
     int count = 0;
@@ -662,6 +706,9 @@ int computeSubTreeNodeTypeCountFunc(int nodeType, ASR * node, char * name) {
     return count;
 }
 
+
+//funcion que nos ayuda a comprobar los tipos de nuestras variables, contamos los elementos en sus subarboles y determinamos si son INT o FLOAT
+
 int exprIsTypeConsistent(ASR * exprNode) {
     int intSubTreeNodeCount = computeSubTreeNodeTypeCount(INTEGER_NUMBER_VALUE, exprNode);
     int doubleSubTreeNodeCount = computeSubTreeNodeTypeCount(FLOATING_POINT_NUMBER_VALUE, exprNode);
@@ -675,6 +722,8 @@ int exprIsTypeConsistent(ASR * exprNode) {
     return 0;
 }
 
+//funcion que nos ayuda a comprobar los tipos de nuestras variables, contamos los elementos en sus subarboles y determinamos si son INT o FLOAT
+
 int exprIsTypeConsistentFunc(ASR * exprNode, char * name) {
     int intSubTreeNodeCount = computeSubTreeNodeTypeCountFunc(INTEGER_NUMBER_VALUE, exprNode, name);
     int doubleSubTreeNodeCount = computeSubTreeNodeTypeCountFunc(FLOATING_POINT_NUMBER_VALUE, exprNode, name);
@@ -687,6 +736,8 @@ int exprIsTypeConsistentFunc(ASR * exprNode, char * name) {
 
     return 0;
 }
+
+//funciones auxiliares que llaman a la revision de tipos
 
 int isIntegerExprFunc(ASR * exprNode, char * name) {
     return exprIsTypeConsistentFunc(exprNode, name) == INTEGER_NUMBER_VALUE;
@@ -704,6 +755,7 @@ int isFloatingPointExpr(ASR * exprNode) {
     return exprIsTypeConsistent(exprNode) == FLOATING_POINT_NUMBER_VALUE;
 }
 
+//funcion que evalua las expresiones de tipo INT, tiene su contraparte solo para las llamadas a funcion
 
 int func_exprIntFunc(ASR * exprIntNode, char * name) {
     assert(exprIntNode != NULL);
@@ -717,6 +769,7 @@ int func_exprIntFunc(ASR * exprIntNode, char * name) {
         - func_exprIntFunc(exprIntNode->arrPtr[1], name);
     }
     else if(exprIntNode->type == STAR) {
+
         return func_exprIntFunc(exprIntNode->arrPtr[0], name)
         * func_exprIntFunc(exprIntNode->arrPtr[1], name);
     }
@@ -781,6 +834,8 @@ int func_exprInt(ASR * exprIntNode) {
 
     return valToReturn;
 }
+
+//funcion que evalua las expresiones de tipo Double o Float, tiene su contraparte para las llamadas a funcion
 
 double func_exprDoubleFunc(ASR * exprDoubleNode, char * name) {
     // If we enter an EXPR node, we must at least one term.
@@ -863,6 +918,7 @@ double func_exprDouble(ASR * exprDoubleNode) {
     return valToReturn;
 }
 
+//funcion que evalua las expressions, booleanas, tiene su contraparte para las llamadas a funcion
 
 int func_expressionFunc(ASR* nodeExpr) {
     assert(nodeExpr->arrPtr[0] != NULL);
@@ -975,6 +1031,8 @@ int func_expression(ASR* nodeExpr) {
     return -1;
 }
 
+//funcion que lee desde la terminal un valor int
+
 int readInt() {
     int intVal = -1;
     printf("escribe tu entero: ");
@@ -983,6 +1041,8 @@ int readInt() {
     return intVal;
 }
 
+//funcion que lee desde la terminal un valor double
+
 double readDouble() {
     double doubleVal = -1.0;
     printf("Escribe tu numero de punto flotante: ");
@@ -990,6 +1050,8 @@ double readDouble() {
     assert(scanfReturnValue > 0);
     return doubleVal;
 }
+
+//funciones para la impresion del asr
 
 void printNodeType(int type, char* label) {
     // If our names array contains an entry for this type
@@ -1000,12 +1062,15 @@ void printNodeType(int type, char* label) {
         printf("%s: %d\n", label, type);
     }
 }
+//funciones para la impresion del asr
 
 void preTreePrinting(ASR* node, char* nombre) {
     printf("###################### INICIO ARBOL SINTACTICO REDUCIDO DE LA FUNCION %s #####################\n\n", nombre);
     printTree(node);
     printf("###################### FIN ARBOL SINTACTICO REDUCIDO DE LA FUNCION %s #####################\n\n", nombre);
 }
+
+//funciones para la impresion del asr
 
 void printTree(ASR * node) {
     if(node == NULL) return;
@@ -1033,6 +1098,8 @@ void printTree(ASR * node) {
         printTree(node->arrPtr[i]);
 }
 
+//funcion para la contabilizacion de parametros que se envian a una funcion
+
 int traverseTree(ASR * node, int c) {
     if(!node) return 0;
     int count = 0;
@@ -1047,16 +1114,7 @@ int traverseTree(ASR * node, int c) {
     return count;
 }
 
-void obtainType(struct nodoTS * tsl) {
-    struct nodoTS * ptr = tsl;
-
-    while(ptr != NULL) {
-        if(ptr->type == INTEGER_NUMBER_VALUE) printf("(int, %d) ",ptr->value.intVal);
-        else if(ptr->type == FLOATING_POINT_NUMBER_VALUE) printf("(float, %.2f) ", ptr->value.doubleVal);
-
-        ptr = ptr->next;
-    }
-}
+//funcion que nos permite obtener el siguiente parametro de los que se envian a una funcion
 
 ASR * getNextPassedParameter(ASR ** ptrPtrFuncNodeSubStree) {
     assert(*ptrPtrFuncNodeSubStree);
@@ -1076,6 +1134,8 @@ ASR * getNextPassedParameter(ASR ** ptrPtrFuncNodeSubStree) {
     return ptrNextPassedParameter;
 }
 
+//funcion para obtener el tamaño de la tabla de simbolos local de una funcion
+
 int tslLength(struct nodoTS * tsl) {
     struct nodoTS * ptr = tsl;
     int tslL = 0;
@@ -1088,11 +1148,15 @@ int tslLength(struct nodoTS * tsl) {
     return tslL;
 }
 
+//funcion para mover la cabeza de la lista ligada un determinado numero de movimientos
+
 void moveTslForward(struct nodoTS ** ptrPtrTslHead, int moves) {
     for(int i = 0; i < moves; i++) {
         *ptrPtrTslHead = (*ptrPtrTslHead)->next;
     }
 }
+
+//funcion auxiliar que prepara el ambiente para las llamadas a funcion, comprueba los tipos y manda a llamar al interprete con el cuerpo de la funcion
 
 void func_func(ASR * nodeFunc) {
     struct nodoTSF * currFunc = retrieveFromFunSymbolTable(nodeFunc->value.idName);
@@ -1113,7 +1177,8 @@ void func_func(ASR * nodeFunc) {
         assert(paramsPassed);
         assert(currParamPassed);
 
-        assert(isIntegerExpr(paramsPassed) && currParamPassed->type == INTEGER_NUMBER_VALUE);
+        assert(isIntegerExpr(paramsPassed) && currParamPassed->type == INTEGER_NUMBER_VALUE || isFloatingPointExpr(paramsPassed) && currParamPassed->type == FLOATING_POINT_NUMBER_VALUE);
+
 
         currParamPassed = currParamPassed->next;
     }
@@ -1141,6 +1206,8 @@ void func_func(ASR * nodeFunc) {
     funcRunning = 1;
     interpreta(funcSymbol->cuerpo);
 }
+
+//funcion auxiliar que lee desde la terminal y asigna el valor al simbolo deseado
 
 void func_read(ASR * nodeRead) {
     assert(nodeRead->arrPtr[0] != NULL);
@@ -1183,6 +1250,8 @@ void func_read(ASR * nodeRead) {
         }
     }
 }
+
+//funcion auxiliar que imprime en la terminal el numero, expresion o simbolo deseado
 
 void func_print(ASR * printNode) {
     assert(printNode->arrPtr[0] != NULL);
@@ -1227,11 +1296,14 @@ void func_print(ASR * printNode) {
     }
 }
 
+//funcion auxiliar que asigna al simbolo en la tabla de simbolos, el numero, expresion o llamada a funcion deseada
+
 void func_assign(ASR * setNode) {
     assert(setNode->arrPtr[0] != NULL);
     assert(setNode->arrPtr[1] != NULL);
 
     if(funcRunning == 0){
+
         struct nodoTS * currNode = retrieveFromSymbolTable(setNode->arrPtr[0]->value.idName);
         assert(currNode != NULL);
         int exprValueToSet;
@@ -1293,6 +1365,8 @@ void func_assign(ASR * setNode) {
     }
 }
 
+//funcion auxiliar que maneja los if statements del codigo
+
 void func_if(ASR * nodeIf) {
     assert(nodeIf->arrPtr[0] != NULL);
     if(funcRunning == 0) {
@@ -1309,6 +1383,8 @@ void func_if(ASR * nodeIf) {
         }
     }
 }
+
+//funcion auxiliar que maneja los if-else statements del codigo
 
 void func_ifElse(ASR * nodeIfElse) {
     assert(nodeIfElse->arrPtr[0] != NULL);
@@ -1327,6 +1403,8 @@ void func_ifElse(ASR * nodeIfElse) {
     }
 }
 
+//funcion auxiliar que maneja el ciclo while del codigo
+
 void func_while(ASR * nodeWhile) {
     assert(nodeWhile->arrPtr[0] != NULL);
     if(funcRunning == 0) {
@@ -1339,6 +1417,8 @@ void func_while(ASR * nodeWhile) {
         }
     }
 }
+
+//funcion auxiliar que maneja el ciclo for del codigo
 
 void func_for(ASR * nodeFor) {
 
@@ -1362,6 +1442,8 @@ void func_for(ASR * nodeFor) {
     }
 }
 
+//funcion auxiliar que maneja el ciclo repeat-until del codigo
+
 void func_repeat(ASR * nodeRepeat) {
     assert(nodeRepeat->arrPtr[1] != NULL);
     if(funcRunning == 0) {
@@ -1374,6 +1456,8 @@ void func_repeat(ASR * nodeRepeat) {
         } while(func_expressionFunc(nodeRepeat->arrPtr[1]));
     }
 }
+
+//funcion auxiliar que efectua las llamadas return de las funciones y las asigna a la funcion misma, para poder ser utilizada en el codigo main
 
 void func_return(ASR * nodeReturn) {
     assert(nodeReturn->arrPtr[0] != NULL);
@@ -1400,6 +1484,9 @@ void func_return(ASR * nodeReturn) {
 
     funcRunning = 0;
 }
+
+//funcion principal del codigo que interpreta las expresiones encontradas durante el analisis sintactico, recursiva y que se mueve por todos los hijos de los nodos
+//para asi ejecutar las lineas deseadas
 
 void interpreta(ASR * node) {
     if(node == NULL)
